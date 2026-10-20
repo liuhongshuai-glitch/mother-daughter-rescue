@@ -4,9 +4,14 @@ import { solve } from './engine.js';
  * Endless mode (opens after all 20 repairs): every board is generated on the fly.
  * Same rules as LEVELS — one supply per row, column and colour region, supplies never touch (diagonals included) —
  * and every generated board has exactly one solution, checked with the engine's own solver.
+ * On top of that, every board must be solvable from the opening without guessing, using only the two deductions the
+ * in-game hint (engine.getHint) can explain: "a row/column/colour has one cell left" and "a colour's open cells all sit in
+ * one row/column (or the reverse)". Boards that would need a guess are reshaped or rebuilt before the player sees them.
  * Output has the LEVELS shape: {id, n, regions, solution, givens}.
  */
 const COUNT_CAP = 32;
+const ATTEMPTS = 12;
+const RESHAPE_STEPS = 2500;
 
 /** Board size by round: two warm-up 6×6 boards, then 6/7 mixed, then mostly 7/8. */
 export function endlessSize(round){
@@ -72,32 +77,94 @@ function connectedWithout(n,regions,region,skip){
 
 const countAnswers=board=>solve(board,[],COUNT_CAP).length;
 
+/** Precomputed units and "placing i rules out j" masks for the deduction check. */
+function deductionBoard(n,regions){
+  const N=n*n,keyOf={row:i=>Math.floor(i/n),col:i=>i%n,region:i=>regions[i]},byType={};
+  for(const t of ['row','col','region']){byType[t]=[];for(let k=0;k<n;k++)byType[t].push([]);}
+  for(let i=0;i<N;i++)for(const t of ['row','col','region'])byType[t][keyOf[t](i)].push(i);
+  const kill=[];
+  for(let i=0;i<N;i++){
+    const mask=new Uint8Array(N),ri=keyOf.row(i),ci=keyOf.col(i);
+    for(let j=0;j<N;j++){
+      if(j===i)continue;
+      const rj=keyOf.row(j),cj=keyOf.col(j);
+      if(ri===rj||ci===cj||regions[i]===regions[j]||(Math.abs(ri-rj)<=1&&Math.abs(ci-cj)<=1))mask[j]=1;
+    }
+    kill.push(mask);
+  }
+  return {n,N,keyOf,byType,units:[...byType.row,...byType.col,...byType.region],kill};
+}
+
+const CONFINE_PAIRS=[['region','row'],['region','col'],['row','region'],['col','region']];
+
+/**
+ * Plays the board with the hint's two deductions only. Returns {solved, left}: `left` shrinks as the deduction gets
+ * further (open candidate cells plus a big weight per supply still missing), so the reshaping loop can climb on it.
+ */
+function deduce(B,givens=[]){
+  const cand=new Uint8Array(B.N).fill(1),placed=new Uint8Array(B.N);let count=0;
+  const place=i=>{placed[i]=1;cand[i]=0;count++;const mask=B.kill[i];for(let j=0;j<B.N;j++)if(mask[j])cand[j]=0;};
+  const isOpen=cells=>!cells.some(i=>placed[i]);
+  for(const g of givens)place(g);
+  let stuck=false;
+  while(count<B.n&&!stuck){
+    let progressed=false;
+    for(const cells of B.units){
+      if(!isOpen(cells))continue;
+      const left=cells.filter(i=>cand[i]);
+      if(!left.length){stuck=true;break;}
+      if(left.length===1){place(left[0]);progressed=true;break;}
+    }
+    if(stuck||progressed)continue;
+    for(const [inner,outer] of CONFINE_PAIRS){
+      for(const cells of B.byType[inner]){
+        if(!isOpen(cells))continue;
+        const left=cells.filter(i=>cand[i]);if(!left.length)continue;
+        const line=B.keyOf[outer](left[0]);if(!left.every(i=>B.keyOf[outer](i)===line))continue;
+        const own=new Set(cells);
+        for(const i of B.byType[outer][line])if(cand[i]&&!own.has(i)){cand[i]=0;progressed=true;}
+        if(progressed)break;
+      }
+      if(progressed)break;
+    }
+    if(!progressed)stuck=true;
+  }
+  let open=0;for(let i=0;i<B.N;i++)if(cand[i])open++;
+  return {solved:count===B.n,left:open+(B.n-count)*B.N};
+}
+
+function score(n,regions){
+  return {count:countAnswers({n,regions,givens:[]}),left:deduce(deductionBoard(n,regions)).left};
+}
+
 export function generateEndless(round,rand=Math.random){
   const n=endlessSize(round);
   let last=null;
-  for(let attempt=0;attempt<8;attempt++){
+  for(let attempt=0;attempt<ATTEMPTS;attempt++){
     const solution=randomSolution(n,rand);
     if(!solution)continue;
-    const regions=growRegions(n,solution,rand),seeds=new Set(solution),board={n,regions,givens:[]};
-    let count=countAnswers(board);
+    const regions=growRegions(n,solution,rand),seeds=new Set(solution);
+    let best=score(n,regions);
     // Reshape region borders one cell at a time (answer cells never move, regions stay connected), keeping any change
-    // that does not add answers, until only the planted answer is left.
-    for(let step=0;step<800&&count>1;step++){
+    // that does not add answers and does not make the no-guess deduction stop earlier, until the planted answer is the
+    // only one and the deduction reaches it from the opening.
+    for(let step=0;step<RESHAPE_STEPS&&!(best.count===1&&best.left===0);step++){
       const cell=Math.floor(rand()*n*n);
       if(seeds.has(cell))continue;
       const from=regions[cell],options=[...new Set(neighbours(n,cell).map(j=>regions[j]).filter(r=>r!==from))];
       if(!options.length||!connectedWithout(n,regions,from,cell))continue;
       regions[cell]=options[Math.floor(rand()*options.length)];
-      const next=countAnswers(board);
-      if(next<=count)count=next;else regions[cell]=from;
+      const next=score(n,regions);
+      if(next.count<best.count||(next.count===best.count&&next.left<=best.left))best=next;else regions[cell]=from;
     }
-    if(count===1)return {id:1000+round,n,regions:[...regions],solution,givens:[]};
-    last={regions,solution};
+    if(best.count===1&&best.left===0)return {id:1000+round,n,regions:[...regions],solution,givens:[]};
+    if(best.count===1||!last)last={regions:[...regions],solution};
   }
-  // Very unlikely fallback: fix answer cells as clues until the board has one solution.
+  // Very unlikely fallback: fix answer cells as clues until the board has one solution that the deduction reaches.
   const board={n,regions:[...last.regions],givens:[]};
+  const B=deductionBoard(n,board.regions);
   for(const cell of shuffle([...last.solution],rand)){
-    if(solve(board,[],2).length===1)break;
+    if(solve(board,[],2).length===1&&deduce(B,board.givens).solved)break;
     board.givens.push(cell);
   }
   return {id:1000+round,n,regions:board.regions,solution:last.solution,givens:board.givens.sort((a,b)=>a-b)};
