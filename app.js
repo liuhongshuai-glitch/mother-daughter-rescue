@@ -1035,15 +1035,29 @@ function showSettings(){
   cancelResult();
   if(!loaded)return;
   const row=(icon,label,button)=>`<div class="setting-row"><span class="setting-icon">${uiImg(icon)}</span><span class="setting-label">${label}</span>${button}</div>`;
-  openModal(`<h2>${t('settings')}</h2>${row('icon-globe',t('language'),`<button id="languageButton">${lang==='zh'?'English':'简体中文'}</button>`)}${row('icon-music',t('sound'),`<button id="musicButton" class="${musicEnabled?'on':''}" aria-pressed="${musicEnabled}">${t(musicEnabled?'soundOn':'soundOff')}</button>`)}${row('icon-clock',t('modeLabel'),`<button id="modeButton" class="${mode==='challenge'?'on':''}" aria-pressed="${mode==='challenge'}">${t(mode==='challenge'?'modeChallenge':'modeWarm')}</button>`)}${row('icon-map',lang==='zh'?'背景':'Background',`<button id="bgButton">${lang==='zh'?currentBg().zh:currentBg().en}</button>`)}${row('icon-book',t('tutorial'),`<button id="helpButton">${t('tutorial')}</button>`)}${row('icon-refresh',lang==='zh'?'游戏进度':'Progress',`<button id="wipeButton" class="danger">${lang==='zh'?'重置进度':'Reset'}</button>`)}<p class="dialog-foot">${t('saved')}</p>${actions([['settingsClose',t('close'),true]])}`,'settings');
+  openModal(`<h2>${t('settings')}</h2>${row('icon-globe',t('language'),`<button id="languageButton">${lang==='zh'?'English':'简体中文'}</button>`)}${row('icon-music',t('sound'),`<button id="musicButton" class="${musicEnabled?'on':''}" aria-pressed="${musicEnabled}">${t(musicEnabled?'soundOn':'soundOff')}</button>`)}${row('icon-clock',t('modeLabel'),`<button id="modeButton" class="${mode==='challenge'?'on':''}" aria-pressed="${mode==='challenge'}">${t(mode==='challenge'?'modeChallenge':'modeWarm')}</button>`)}${row('icon-map',lang==='zh'?'背景':'Background',`<button id="bgButton">${lang==='zh'?currentBg().zh:currentBg().en}</button>`)}${row('icon-book',t('tutorial'),`<button id="helpButton">${t('tutorial')}</button>`)}${row('icon-refresh',lang==='zh'?'游戏进度':'Progress',`<button id="wipeButton" class="danger">${lang==='zh'?'重置进度':'Reset'}</button>`)}${row('icon-hint',`${lang==='zh'?'一键完成本关':'Finish level'}<small class="gm-tag">GM</small>`,`<button id="gmFinishButton" class="on">${lang==='zh'?'完成本关':'Finish'}</button>`).replace('class="setting-row"','class="setting-row gm-row"')}<p class="dialog-foot">${t('saved')}</p>${actions([['settingsClose',t('close'),true]])}`,'settings');
   $('modeButton').onclick=()=>{setMode(mode==='challenge'?'warm':'challenge');showSettings();};
   $('languageButton').onclick=()=>{switchLanguage();showSettings();};
   $('musicButton').onclick=()=>{musicEnabled=!musicEnabled;if(!musicEnabled){audio.pauseAll();}else audio.playMusic();persist();showSettings();};
   $('helpButton').textContent=lang==='zh'?'重玩教学':'Replay tutorial';
   $('helpButton').onclick=()=>{tutorialStep=0;tutorial(true);};
   $('wipeButton').onclick=confirmWipe;
+  $('gmFinishButton').onclick=gmFinish;
   $('bgButton').onclick=showBackgrounds;
   $('settingsClose').onclick=()=>{closeModal();if(phase==='won'||phase==='failed')resultModal();else if(phase==='tutorial')tutorial();};
+}
+/** GM: fills the board with the solution and lets the normal win flow (stars, scene, story) run. In the tutorial it skips the lesson. */
+function gmFinish(){
+  const zh=lang==='zh',btn=$('gmFinishButton');
+  if(phase==='tutorial'){closeModal();completeCoach();return;}
+  if(phase!=='playing'){if(btn){btn.textContent=zh?'本关已结束':'Level over';btn.disabled=true;}return;}
+  const sol=solve(board,[],1)[0];
+  if(!sol){if(btn){btn.textContent=zh?'无解':'No solution';btn.disabled=true;}return;}
+  closeModal();
+  if(introPending)beginPlay();
+  remember();
+  placements=new Set(sol.filter(i=>!board.givens.includes(i)));marks=new Set();
+  updateAfterMove();
 }
 /** Background picker: tapping a card switches the page background live; the choice is saved at once. */
 function showBackgrounds(){
