@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>暖一点 · 手机全面屏适配检查</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{background:radial-gradient(ellipse 70% 60% at 50% 40%,#2a2f3a 0,#16191f 55%,#0d0f13 100%);color:#E9E4D8;font:15px/1.6 "Microsoft YaHei UI","PingFang SC",sans-serif}
+  header{padding:18px 24px 4px;text-align:center}
+  h1{margin:0;font-size:20px}
+  header p{margin:4px 0;color:#B9B3A6;font-size:13px}
+  .row{display:flex;flex-wrap:wrap;justify-content:center;gap:28px;padding:16px 16px 40px}
+  figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:10px}
+  figcaption{font-size:13px;color:#CFC8B8}
+  /* 机身：屏幕圆角 + 灵动岛 + 底部横条，游戏铺满整块屏幕（包括刘海下方），和真机一样 */
+  .phone{padding:10px;border-radius:58px;background:#050506;box-shadow:0 0 0 3px #3a3d44,0 30px 60px -20px #000c}
+  .screen{position:relative;border-radius:48px;overflow:hidden;background:#000}
+  .screen iframe{display:block;border:0}
+  .island{position:absolute;z-index:3;top:11px;left:50%;width:122px;height:35px;margin-left:-61px;border-radius:20px;background:#000;pointer-events:none}
+  .bar{position:absolute;z-index:3;left:50%;bottom:8px;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:#fffd;pointer-events:none}
+  .status{position:absolute;z-index:3;top:16px;left:34px;color:#fff;font:600 15px/1 -apple-system,"Segoe UI",sans-serif;pointer-events:none;text-shadow:0 1px 2px #000a}
+  /* 红色虚线 = 系统安全区边界：按钮都在线内就不会被切到 */
+  .safe{position:absolute;z-index:2;pointer-events:none;border:1.5px dashed #ff4d4dcc;border-radius:6px}
+  .guides-off .safe{display:none}
+  .bar-ctl{display:flex;justify-content:center;gap:10px;padding:6px}
+  button{border:0;border-radius:999px;padding:8px 16px;font-size:14px;cursor:pointer;background:#F3E3C2;color:#4A2E14;font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <h1>手机全面屏适配检查</h1>
+  <p>游戏铺满整块屏幕（和真机一样，四角是圆的，顶部有灵动岛，底部有横条）。红色虚线是系统安全区，按钮在虚线以内就不会被切到。</p>
+  <p>三台机型都是可以直接点着玩的真实游戏；在其中一台里操作不会影响另外两台的画面，但共用同一个存档。</p>
+</header>
+<div class="bar-ctl">
+  <button id="guides">隐藏 / 显示安全区虚线</button>
+  <button id="reload">全部刷新</button>
+</div>
+<div class="row" id="row"></div>
+<script>
+  // 机型：屏幕宽高、顶部/底部安全区（px）
+  const PHONES=[
+    {name:'iPhone 14 / 15（390×844）',w:390,h:844,top:47,bottom:34},
+    {name:'iPhone 15 Pro Max（430×932）',w:430,h:932,top:59,bottom:34},
+    {name:'iPhone SE / 小屏（375×667，无刘海）',w:375,h:667,top:20,bottom:0,flat:true},
+  ];
+  const row=document.getElementById('row');
+  const scale=Math.min(1,(innerHeight-170)/944);
+  PHONES.forEach(p=>{
+    const fig=document.createElement('figure');
+    const r=p.flat?0:48,ins=`${p.top},0,${p.bottom},0`;
+    // 安全区数据通过游戏页自带的 safe-area 协议传进去（等同真机的 env(safe-area-inset-*)）
+    const src=`./index.html${location.search}#runai-safearea=${encodeURIComponent(`1;${ins};${ins}`)}`;
+    fig.innerHTML=`<div class="phone" style="zoom:${scale.toFixed(3)};${p.flat?'border-radius:28px':''}">
+      <div class="screen" style="width:${p.w}px;height:${p.h}px;${p.flat?'border-radius:4px':''}">
+        <iframe src="${src}" width="${p.w}" height="${p.h}" title="${p.name}" allow="autoplay"></iframe>
+        ${p.flat?'':'<div class="island"></div><div class="bar"></div>'}
+        <span class="status">9:41</span>
+        <div class="safe" style="top:${p.top}px;bottom:${p.bottom}px;left:${p.flat?0:14}px;right:${p.flat?0:14}px"></div>
+      </div></div><figcaption>${p.name}</figcaption>`;
+    row.appendChild(fig);
+  });
+  document.getElementById('guides').onclick=()=>document.body.classList.toggle('guides-off');
+  document.getElementById('reload').onclick=()=>document.querySelectorAll('iframe').forEach(f=>f.src=f.src);
+</script>
+</body>
+</html>

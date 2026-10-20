@@ -1,0 +1,11 @@
+# 本地工具、截图工具和存档，不属于游戏本身
+.tools/
+shots-tools/
+__save/
+
+# 系统和编辑器临时文件
+Thumbs.db
+desktop.ini
+.DS_Store
+*.tmp
+*.log

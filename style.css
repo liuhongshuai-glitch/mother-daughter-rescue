@@ -1,0 +1,895 @@
+﻿/* UI skin v8: glossy cream / honey-gold / carved wood, after the Royal Match, Royal Kingdom and Gossip Harbor store screens.
+   Every container, button, plaque, ribbon, frame, icon and tile face is an assetgen kind=ui bitmap (web/assets/ui-*.webp),
+   wired through CSS variables that app.js fills with asset() URLs so the offline single-file build keeps working.
+   Only value-driven fills (repair bar, star count) and layout are drawn by code. */
+:root{
+  color-scheme:light;
+  --ink:#5A3A1E;--ink-soft:#7B5836;--cream:#FFF4DF;--gold:#F2B441;--wood:#6B4526;--wood-dark:#3F2512;--paper:#F3E7D3;
+  --ui-wood:none;--ui-panel:none;--ui-frame:none;--ui-tile:none;--ui-btn-cream:none;--ui-btn-gold:none;--ui-btn-green:none;
+  --ui-plaque:none;--ui-plaque-wood:none;--ui-bar:none;--ui-banner:none;--ui-tag:none;--ui-ribbon:none;--ui-ribbon-blue:none;
+  --ui-round:none;--ui-tail:none;--ui-step-done:none;--ui-step-current:none;--ui-step-locked:none;--ui-warning:none;--ui-lock:none;--ui-medallion:none;
+  font:600 15px/1.45 "Microsoft YaHei UI","Microsoft YaHei","PingFang SC","Hiragino Sans GB","Noto Sans SC",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;min-height:0;margin:0}
+body{color:var(--ink);overflow:hidden;overscroll-behavior:none;background-color:#4A2E17;background-image:radial-gradient(ellipse 120% 70% at 50% 42%,#0000 35%,#1a0c0499 100%),var(--ui-wood);background-size:100% 100%,240px 240px}
+button,a{-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0;min-height:44px;touch-action:manipulation;transition:transform .12s,filter .12s}
+button:active:not(:disabled){transform:translateY(2px) scale(.97)}
+button:disabled{cursor:default;filter:grayscale(.55) brightness(.92);opacity:.62}
+button:focus-visible,a:focus-visible{outline:3px solid #FFF1B8;outline-offset:2px}
+a{color:inherit;text-decoration:none}
+img{-webkit-user-drag:none;user-select:none}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.ui-icon{display:block;object-fit:contain;pointer-events:none}
+
+/* ---------- Page grid: top HUD, story (scene + task strip), puzzle ---------- */
+.game{width:min(100%,480px);height:100vh;height:100dvh;max-height:100dvh;margin:auto;padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:48px minmax(0,1fr) auto;gap:6px;overflow:hidden}
+.topbar,.story,.puzzle-panel,.task-heading{min-width:0}
+.chapter-line,.scene-caption,.rules,.gesture-help,footer,.board-heading,.brand small{display:none}
+
+/* ---------- Top HUD ---------- */
+.topbar{display:flex;align-items:center;gap:6px;height:48px;min-width:0}
+#levelLabel{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:4px;height:40px;min-width:84px;padding:0 14px 0 34px;background:var(--ui-level-medal) 3px 50%/30px 30px no-repeat;border:0 solid transparent;border-image:var(--ui-plaque) 60 fill / 20px stretch;color:var(--ink);font-weight:900;font-size:14px;white-space:nowrap;letter-spacing:.5px}
+.brand{flex:1 1 auto;min-width:0;max-width:150px;height:46px;margin:-6px auto 0;display:flex;align-items:flex-end;justify-content:center;padding:0 10px 7px 30px;background:var(--ui-title-plate) center/100% 100% no-repeat;color:#FFE9B8;font-weight:900;font-size:15px;letter-spacing:1px;white-space:nowrap;text-shadow:0 2px 0 #3a1f0c,1px 0 0 #3a1f0c,-1px 0 0 #3a1f0c}
+#brand{overflow:hidden;text-overflow:ellipsis}
+.topbar nav{flex:none;display:flex;gap:4px}
+.round-button{width:44px;height:44px;min-height:44px;display:grid;place-items:center;background:var(--ui-round) center/100% 100% no-repeat;color:var(--ink);font-weight:900;font-size:13px;line-height:1;filter:drop-shadow(0 2px 2px #0000004d)}
+.round-button .ui-icon{width:27px;height:27px}
+#quickLanguage{font-size:13px;letter-spacing:-.2px}
+html[lang=en] #quickLanguage{font-size:12px}
+
+/* ---------- Story: framed scene, task banner, clock plaque, repair bar ---------- */
+.story{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto auto;gap:5px}
+/* The room art is 900脳600; scene.js covers the frame, so the stage runs the full column width and trims only ceiling/floor. */
+.scene-wrap{position:relative;min-height:0;height:100%;width:100%;max-height:100%;justify-self:stretch;align-self:stretch;margin-inline:-4px;width:calc(100% + 8px);border:6px solid transparent;border-image:var(--ui-panel) 34 / 6px stretch;border-radius:14px;overflow:hidden;background:#1B2638;box-shadow:0 6px 14px #0000005c}
+#scene{display:block;width:100%;height:100%;object-fit:contain}
+.task-heading{display:flex;align-items:center;gap:6px;height:46px;min-height:0;margin:0}
+.task-banner{flex:1;min-width:0;height:44px;display:flex;align-items:center;gap:8px;padding:0 12px 0 14px;border:0 solid transparent;border-image:var(--ui-banner) 40 60 fill / 16px 24px stretch}
+.task-banner h1{flex:1;min-width:0;margin:0;font-size:17px;line-height:1.2;font-weight:900;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[lang=en] .topbar{justify-content:space-between}
+html[lang=en] .task-banner h1{white-space:normal;font-size:14px;line-height:1.08;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.eyebrow{margin:0}
+.task-steps{flex:none;display:flex;gap:3px}
+.task-step{width:22px;height:22px;display:grid;place-items:center;background:var(--ui-step-locked) center/100% 100% no-repeat;color:#F4EBDD;font:900 11px/1 system-ui,sans-serif;text-shadow:0 1px 0 #0007}
+.task-step.done{background-image:var(--ui-step-done)}
+.task-step.active{background-image:var(--ui-step-current);color:#6A3A08;text-shadow:0 1px 0 #fff6;transform:scale(1.14)}
+.clock{flex:none;display:flex;align-items:center;justify-content:center;gap:5px;height:44px;min-width:94px;padding:0 13px 0 9px;border:0 solid transparent;border-image:var(--ui-plaque-wood) 60 fill / 22px stretch;color:#FFEFC8;font:900 19px/1 "Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;white-space:nowrap;font-variant-numeric:tabular-nums;text-shadow:0 2px 0 #2a1406}
+.clock .ui-icon{width:26px;height:26px;flex:none}
+.clock b{font-weight:900}
+.clock.urgent b{color:#FF9C73;animation:clockPulse .9s ease-in-out infinite}
+html[lang=en] .clock{font-size:17px}
+.repair-line{display:flex;align-items:center;gap:3px;height:22px;margin:0}
+.repair-track{position:relative;flex:1;min-width:0;height:22px;padding:5px 7px;border:0 solid transparent;border-image:var(--ui-bar) 30 fill / 9px stretch;overflow:hidden}
+#repairFill{display:block;width:0;height:100%;border-radius:8px;background:linear-gradient(#FFE28A,#F7B13A 55%,#E98A1A);box-shadow:inset 0 2px 0 #FFF6C8b0,inset 0 -2px 0 #B8601080;transition:width .5s ease}
+#repairText{position:absolute;inset:0;display:grid;place-items:center;color:#FFF8E6;font:900 11px/1 system-ui,sans-serif;text-shadow:0 1px 0 #4a2208,1px 0 0 #4a2208,-1px 0 0 #4a2208,0 -1px 0 #4a2208;pointer-events:none}
+.repair-track::after{content:"";position:absolute;inset:5px 7px;border-radius:8px;background:linear-gradient(90deg,transparent,#fff8e070,transparent);transform:translateX(-100%);animation:sheen 2.6s ease-in-out infinite;pointer-events:none}
+#repairIcon{flex:none;width:30px;height:30px;object-fit:contain;margin:-6px 0 -6px -10px;filter:drop-shadow(0 2px 1px #0000006b)}
+
+/* ---------- Puzzle: carved frame, glossy tiles, chunky tool buttons ---------- */
+.puzzle-panel{position:relative;min-height:0;display:flex;flex-direction:column;align-items:center;gap:8px;padding:0}
+/* Board = plain dark-wood tray with a lighter wood rim (matches the approved M mock-up) */
+.board{width:min(100%,43dvh,410px);flex:none;aspect-ratio:1;margin:4px auto;display:grid;grid-template-columns:repeat(var(--n,4),1fr);border:8px solid #3F2512;border-radius:12px;background:#3F2512;box-shadow:0 0 0 4px #6B4526,0 6px 14px #00000033;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;isolation:isolate}
+.cell{position:relative;min-width:0;min-height:0;aspect-ratio:1;padding:0;border:0;border-radius:0;display:grid;place-items:center;overflow:hidden;touch-action:none;background:transparent;transition:filter .14s,opacity .18s}
+.cell::before{content:"";position:absolute;inset:2px;border-radius:7px;background-color:var(--region);background-image:linear-gradient(#FFFFFF6b,#FFFFFF14 42%,#FFFFFF00 60%);background-size:100% 100%;box-shadow:inset 0 2px 0 #FFFFFF73,inset 0 -3px 0 #00000033;pointer-events:none;transition:box-shadow .14s,filter .14s}
+/* Softer regions (teal, blue, firewood): weaker top gloss and bottom shade so they don't read as metal */
+.cell.soft::before{background-image:linear-gradient(#FFFFFF3d,#FFFFFF0d 42%,#FFFFFF00 60%);box-shadow:inset 0 2px 0 #FFFFFF52,inset 0 -2px 0 #3C1E0A24}
+/* Region motif: tone-on-tone game prop (mask image + color set per region by app.js) */
+.cell .motif{position:absolute;inset:11%;filter:blur(.3px);-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none}
+/* Supply on the cell: tile keeps its region color and motif; the supply art simply sits in front */
+/* White chunky 脳 (dark on the pale cream region) */
+.x-mark{position:relative;display:block;width:52%;height:52%;filter:drop-shadow(0 1px 0 #0000002e);pointer-events:none}
+.x-mark::before,.x-mark::after{content:"";position:absolute;left:0;top:38.5%;width:100%;height:23%;border-radius:99px;background:#FFFFFF;transform:rotate(45deg)}
+.x-mark::after{transform:rotate(-45deg)}
+.cell.rg-0 .x-mark::before,.cell.rg-0 .x-mark::after{background:#462812bf}
+.cell.r-edge,.cell.b-edge{border:0}
+.cell:active{filter:brightness(.93)}
+.cell.marked::before{filter:none}
+.cell.hinted::before{box-shadow:inset 0 0 0 3px #FFE27A,inset 0 0 14px #FFD24A;animation:hintGlow 1.1s ease-in-out infinite}
+.cell.hint-source::after{content:"";position:absolute;inset:4px;border:2px dashed #FFF6D5;border-radius:7px;background:#E0503A1f;pointer-events:none;z-index:2}
+.cell.conflict{animation:shake .28s}
+.cell.conflict::before{box-shadow:inset 0 0 0 3px #E0503A}
+.cell.conflict-source::before{box-shadow:inset 0 0 0 3px #F08A5A;animation:conflictBlink .65s ease-out}
+.cell:focus-visible{outline:3px solid #FFF1B8;outline-offset:-4px;z-index:2}
+.cell .region-id,.cell .fixed{display:none}
+.token{position:relative;z-index:1;display:grid;place-items:center;width:100%;height:100%;pointer-events:none}
+.token img{display:block;width:74%;height:74%;object-fit:contain;filter:drop-shadow(0 4px 2px #3b200c66);pointer-events:none}
+.token img.exclude-icon{width:46%;height:46%;filter:drop-shadow(0 1px 0 #fff5)}
+.cell.given .token img{opacity:.95;filter:drop-shadow(0 2px 1px #3b200c52) saturate(.9)}
+/* Pop-in only on the cell whose token just appeared; the board is rebuilt every move and must not replay it elsewhere. */
+.cell.fresh.placed .token img:not(.exclude-icon){animation:landIn .34s cubic-bezier(.34,1.56,.64,1)}
+/* Cells skip the global button press-dip (translate + scale .97). */
+.board .cell:active:not(:disabled){transform:none}
+@media(hover:hover) and (pointer:fine){.cell:hover{filter:brightness(1.05)}.cell:active{filter:brightness(.93)}}
+.message,body.coaching .message{position:absolute;width:1px;height:1px;min-height:0;margin:0;padding:0;clip-path:inset(50%);overflow:hidden}
+.tools{width:min(100%,410px);display:grid;grid-template-columns:1fr 1.22fr 1fr;align-items:end;gap:10px}
+.tools button{height:60px;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px 4px 8px;border:0 solid transparent;border-image:var(--ui-btn-cream) 60 fill / 26px stretch;color:var(--ink);font-weight:900;font-size:13px;line-height:1.1;filter:drop-shadow(0 3px 3px #00000059)}
+.tools button .ui-icon{width:28px;height:28px}
+#hintButton{height:72px;border-image-source:var(--ui-btn-gold);color:#5A3108;filter:drop-shadow(0 0 10px #FFD85Aa6) drop-shadow(0 3px 3px #00000059)}
+#hintButton .ui-icon{width:36px;height:36px;filter:drop-shadow(0 0 8px #FFF3A0)}
+.tools button:disabled{filter:grayscale(.55) brightness(.92) drop-shadow(0 3px 3px #00000040)}
+
+/* ---------- Board overlays: conflict links, level-start card, win/fail ribbon ---------- */
+.board-wrap{position:relative;flex:none;display:grid;place-items:center;width:100%}
+.board-wrap>.board{grid-area:1/1}
+.cell.conflict-hit::before{box-shadow:inset 0 0 0 4px #FF3B2F,inset 0 0 0 6px #FFD0C4,0 0 14px 3px #FF3B2Fcc,inset 0 0 20px #FF5A3Aaa;animation:conflictHit .9s ease-out}
+.cell.conflict-hit{z-index:2}
+.cell.conflict-origin .token{animation:shake .3s}
+.conflict-ghost{position:absolute;width:62%!important;height:62%!important;opacity:.55;filter:grayscale(.2) drop-shadow(0 0 4px #FF3B2F)!important;animation:ghostFade .9s ease-out forwards}
+.conflict-links{grid-area:1/1;position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:3}
+.conflict-links path{fill:none;stroke:#FF3B2F;stroke-width:6;stroke-linecap:round;filter:drop-shadow(0 0 4px #FF6A4A) drop-shadow(0 0 1px #fff);stroke-dasharray:var(--len) var(--len);animation:linkDraw .9s ease-out forwards}
+.conflict-links circle{fill:none;stroke:#FF3B2F;stroke-width:4;opacity:.95;transform-box:fill-box;transform-origin:center;animation:ringPulse .9s ease-out forwards}
+.conflict-links circle.origin{stroke:#FFD7C8}
+.level-intro{grid-area:1/1;position:absolute;inset:0;pointer-events:none;display:none;place-items:center;padding:8%;border-radius:10px;background:radial-gradient(ellipse at 50% 50%,#2a160866,#1a0c04b3);backdrop-filter:blur(3px);z-index:4}
+body.intro-open .level-intro{display:grid;animation:fadeIn .25s ease-out}
+.level-start-card{position:relative;width:min(100%,300px);display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 16px 16px;border:16px solid transparent;border-image:var(--ui-panel) 44 fill / 16px stretch;text-align:center;filter:drop-shadow(0 6px 10px #00000080);animation:dialogIn .38s cubic-bezier(.34,1.56,.64,1)}
+.level-start-tag{position:absolute;top:-32px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;justify-content:center;height:36px;min-width:104px;padding:0 18px 2px;border:0 solid transparent;border-image:var(--ui-tag) 40 fill / 16px stretch;color:#5A3108;font-weight:900;font-size:15px;white-space:nowrap}
+.level-start-medal{width:92px;height:78px;display:grid;place-items:center;background:var(--ui-medallion) center/contain no-repeat}
+.level-start-medal img{width:48px;height:48px;object-fit:contain;margin-top:-8px;filter:drop-shadow(0 2px 2px #0000004d)}
+.level-start-copy{display:flex;flex-direction:column;align-items:center;gap:5px}
+.level-start-copy strong{font-size:19px;line-height:1.2;font-weight:900;color:var(--ink)}
+.level-start-copy>span{font-size:12.5px;line-height:1.35;color:var(--ink-soft);font-weight:700}
+.level-start-time{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 16px 0 9px;border:0 solid transparent;border-image:var(--ui-plaque-wood) 60 fill / 18px stretch;color:#FFEFC8;font-size:14px;font-weight:900;text-shadow:0 1px 0 #2a1406}
+.level-start-time img{width:22px;height:22px}
+/* 开局限时选择（2026-10-19）：木牌里两个选项，选中的是暖金色；整层遮罩不吃点击，只有这一排能点 */
+.level-start-mode{pointer-events:auto;display:inline-flex;align-items:center;gap:4px;height:42px;padding:0 5px 0 9px;border:0 solid transparent;border-image:var(--ui-plaque-wood) 60 fill / 18px stretch}
+.level-start-mode>img{width:22px;height:22px;flex:none}
+.level-start-mode .mode-opt{min-height:30px;height:30px;padding:0 11px 1px;border-radius:15px;color:#FFEFC8;font-size:13.5px;font-weight:900;white-space:nowrap;text-shadow:0 1px 0 #2a1406;opacity:.72}
+.level-start-mode .mode-opt.on{opacity:1;background:linear-gradient(#FFE79A,#F2B441);color:#5A3108;text-shadow:0 1px 0 #FFF3C4;box-shadow:inset 0 -2px 0 #C07A1C,0 1px 3px #0006}
+#playButton{display:none}
+body.intro-open .tools>button:not(#playButton){display:none}
+body.intro-open #playButton{display:flex;grid-column:1/-1;align-items:center;justify-content:center;height:66px;padding:0 20px 7px;border:0 solid transparent;border-image:var(--ui-btn-green-gold) 60 fill / 30px stretch;color:#fff;font-size:24px;font-weight:900;letter-spacing:1px;text-shadow:0 3px 0 #234400,2px 0 0 #234400,-2px 0 0 #234400,0 -2px 0 #234400,2px 2px 0 #234400,-2px 2px 0 #234400,0 5px 4px #0005;filter:drop-shadow(0 4px 4px #00000066);animation:playPulse 1.4s ease-in-out infinite}
+/* 开局按钮方案 B（2026-10-19）：遮罩铺到屏幕底部（--dimB 由 app.js fitIntroDim 计算），按钮换暖金色加金光 */
+body.intro-open .level-intro{inset:0 -10px var(--dimB,0px) -10px;border-radius:0;background:radial-gradient(ellipse at 50% 40%,#2a160850,#1a0c04c8 78%)}
+/* 接缝柔化（2026-10-19）：遮罩顶边上移到任务卡下沿（--dimT 由 fitIntroDim 计算），顶部 64px 渐隐，取代原来的硬边 */
+body.intro-open .level-intro{top:var(--dimT,0px);-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 calc(0px - var(--dimT,0px) + 40px));mask-image:linear-gradient(to bottom,transparent 0,#000 calc(0px - var(--dimT,0px) + 40px))}
+body.intro-open #playButton{position:relative;z-index:30;justify-self:center;width:min(290px,100%);border-image-source:var(--ui-btn-gold);color:#5A3108;text-shadow:0 2px 0 #FFE9A6,1px 0 0 #FFE9A6,-1px 0 0 #FFE9A6;filter:drop-shadow(0 0 18px #FFC94Daa) drop-shadow(0 4px 4px #0006);animation:playPulseGold 1.4s ease-in-out infinite}
+@keyframes playPulseGold{50%{filter:brightness(1.08) drop-shadow(0 0 26px #FFD666cc) drop-shadow(0 4px 4px #0006)}}
+.result-banner{grid-area:1/1;position:absolute;inset:-4px;display:grid;place-items:center;align-content:center;border-radius:12px;background:radial-gradient(ellipse at 50% 50%,#2a160855,#1a0c04c0);pointer-events:none;z-index:5;overflow:visible}
+.result-banner[hidden]{display:none}
+.result-banner[data-kind=fail]{background:radial-gradient(ellipse at 50% 50%,#14223c66,#060b16cc)}
+.result-banner>*{grid-area:1/1}
+.result-banner{overflow:hidden}
+/* 结算遮罩接缝柔化（2026-10-19）：和开局遮罩一致——左右出血、铺到屏幕底部、顶边接任务卡下沿并渐隐，去掉圆角硬边 */
+body.banner-on .result-banner{inset:var(--dimT,0px) -10px var(--dimB,0px) -10px;border-radius:0;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 calc(0px - var(--dimT,0px) + 40px));mask-image:linear-gradient(to bottom,transparent 0,#000 calc(0px - var(--dimT,0px) + 40px))}
+.banner-rays{width:92%;max-width:none;aspect-ratio:1;opacity:.72;translate:0 -14%;animation:raysSpin 6s linear infinite,raysIn .5s ease-out;z-index:0;-webkit-mask-image:radial-gradient(circle,#000 45%,transparent 70%);mask-image:radial-gradient(circle,#000 45%,transparent 70%)}
+.banner-item{width:31%;aspect-ratio:1;object-fit:contain;transform:translateY(-58%);filter:drop-shadow(0 6px 6px #0000006b);animation:itemDrop .55s cubic-bezier(.34,1.56,.64,1) .15s backwards;z-index:1}
+.banner-item.frost{width:32%;transform:translateY(-66%);animation-delay:0s}
+.banner-item{width:36%}
+.banner-sub{font-size:16px!important;padding:5px 22px 7px!important}
+.banner-ribbon{position:relative;z-index:2;justify-self:stretch;margin:0;min-height:86px;display:flex;align-items:center;justify-content:center;padding:6px 64px 26px;border:0 solid transparent;border-width:0 60px;border-image:var(--ui-ribbon) 0 150 fill / 0 60px stretch;color:#fff;font-size:clamp(28px,9.5vw,40px);font-weight:900;letter-spacing:1px;line-height:1;white-space:nowrap;text-shadow:0 3px 0 #7A3F0C,3px 0 0 #7A3F0C,-3px 0 0 #7A3F0C,0 -3px 0 #7A3F0C,2px 2px 0 #7A3F0C,-2px 2px 0 #7A3F0C,2px -2px 0 #7A3F0C,-2px -2px 0 #7A3F0C,0 6px 4px #0006;animation:ribbonStamp .5s cubic-bezier(.34,1.56,.64,1) .35s backwards}
+.result-banner[data-kind=fail] .banner-ribbon{justify-self:center;box-sizing:border-box;width:calc(100% - 8px);max-width:calc(100% - 8px);min-width:0;padding-left:8px;padding-right:8px;font-size:clamp(22px,8.4vw,36px);border-width:0 46px;border-image-width:0 46px;border-image-source:var(--ui-ribbon-ice);border-image-slice:0 150 fill;text-shadow:0 3px 0 #2F4668,3px 0 0 #2F4668,-3px 0 0 #2F4668,0 -3px 0 #2F4668,2px 2px 0 #2F4668,-2px 2px 0 #2F4668,2px -2px 0 #2F4668,-2px -2px 0 #2F4668,0 6px 4px #0006;animation-delay:.05s}
+html[lang=en] .banner-ribbon{font-size:clamp(20px,6.6vw,30px);letter-spacing:0}
+html[lang=en] .result-banner[data-kind=fail] .banner-ribbon{font-size:clamp(19px,6.2vw,28px)}
+/* Drifting snow for the out-of-time beat: tinted flakes built from the rays sprite, no emoji or hand-drawn glyphs. */
+.banner-snow{position:absolute;inset:0;pointer-events:none;z-index:1}
+.banner-snow i{position:absolute;top:-8%;width:14px;height:14px;background:var(--ui-rays) center/contain no-repeat;filter:hue-rotate(180deg) saturate(.4) brightness(1.6);opacity:.85;animation:snowFall 2.4s linear infinite}
+.banner-snow i:nth-child(1){left:8%;animation-delay:-.2s}.banner-snow i:nth-child(2){left:18%;animation-delay:-1.1s;width:10px;height:10px}
+.banner-snow i:nth-child(3){left:29%;animation-delay:-.6s}.banner-snow i:nth-child(4){left:41%;animation-delay:-1.7s;width:18px;height:18px}
+.banner-snow i:nth-child(5){left:52%;animation-delay:-.4s;width:10px;height:10px}.banner-snow i:nth-child(6){left:63%;animation-delay:-1.4s}
+.banner-snow i:nth-child(7){left:72%;animation-delay:-.9s;width:16px;height:16px}.banner-snow i:nth-child(8){left:81%;animation-delay:-2s}
+.banner-snow i:nth-child(9){left:90%;animation-delay:-.1s;width:10px;height:10px}.banner-snow i:nth-child(10){left:35%;animation-delay:-2.2s}
+@keyframes snowFall{0%{transform:translate(0,0)}100%{transform:translate(-14px,560%)}}
+.banner-sub{position:relative;z-index:2;transform:translateY(118%);padding:4px 18px 6px;border:0 solid transparent;border-image:var(--ui-plaque) 60 fill / 14px stretch;color:var(--ink);font-size:14px;font-weight:900;animation:fadeIn .3s ease-out .7s backwards}
+body.banner-on .tools{filter:brightness(.55) saturate(.7);pointer-events:none}
+
+/* Continue offer and failed screen */
+/* The dialog scrolls, so the close button stays inside its box: tucked into the top-right corner over the rim. */
+.dialog-close{position:absolute;top:-40px;right:-34px;width:48px;height:48px;min-height:44px;display:grid;place-items:center;z-index:3;outline:none}
+.dialog-close:focus-visible{outline:3px solid #FFF1B8;border-radius:50%}
+#modal[data-kind=fail] #modalContent>h2:has(+ .offer-badge),#modal[data-kind=fail] .dialog-close+h2{--title-line:#7A3F0C;border-image-source:var(--ui-ribbon)}
+.offer-badge .offer-rays{position:absolute;inset:-34%;width:168%;height:168%;opacity:.55;animation:raysSpin 8s linear infinite;-webkit-mask-image:radial-gradient(circle,#000 40%,transparent 68%);mask-image:radial-gradient(circle,#000 40%,transparent 68%)}
+.offer-badge .offer-laurel{position:absolute;left:-26%;right:-26%;bottom:-8%;width:152%;height:70%;object-fit:contain;object-position:bottom;opacity:.95}
+.offer-badge img:not(.offer-rays):not(.offer-laurel){position:relative}
+.offer-badge b{z-index:2}
+.dialog-close img{width:40px;height:40px;filter:drop-shadow(0 2px 2px #0000004d)}
+#modalContent{position:relative}
+.offer-badge{align-self:center;position:relative;width:118px;height:126px;display:grid;place-items:center;margin-top:-4px}
+.offer-badge img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 5px #0000004d)}
+.offer-badge b{position:absolute;inset:18% 0 0;display:grid;place-items:center;color:#fff;font-size:34px;font-weight:900;text-shadow:0 3px 0 #6A0E0E,2px 0 0 #6A0E0E,-2px 0 0 #6A0E0E,0 -2px 0 #6A0E0E}
+.offer-tag{align-self:center;padding:3px 16px 5px;border:0 solid transparent;border-image:var(--ui-tag) 40 fill / 12px stretch;color:#5A3108!important;font-size:12px!important;font-weight:900}
+.fail-level{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:6px}
+.fail-level .level-start-tag{position:static;transform:none}
+.fail-level img{width:70px;height:70px;object-fit:contain;filter:drop-shadow(0 3px 3px #0000004d)}
+.fail-level b{font-size:15px;font-weight:900;color:var(--ink)}
+
+/* ---------- Coach card (untimed tutorial on the real board) ---------- */
+.board-coach{position:relative;width:min(100%,410px);min-height:86px;display:flex;align-items:center;gap:8px;margin:0;padding:6px 6px 6px 8px;border:14px solid transparent;border-image:var(--ui-panel) 44 fill / 16px stretch;color:var(--ink);filter:drop-shadow(0 4px 5px #00000052)}
+.board-coach[hidden]{display:none}
+.board-coach::after{content:"";position:absolute;left:50%;bottom:-15px;width:32px;height:20px;transform:translateX(-50%);background:var(--ui-tail) center/100% 100% no-repeat;pointer-events:none}
+#coachText{flex:1;min-width:0;margin:0;overflow-wrap:anywhere}
+#coachText small{display:block;color:#8A6230;font-size:10.5px;line-height:1.35;font-weight:700;margin-bottom:2px}
+.coach-actions{align-self:flex-start}
+#coachSkip{min-width:0;height:44px;min-height:44px;padding:0 12px 4px;font-size:12px}
+#coachText strong{display:block;font-size:19px;line-height:1.15;font-weight:900;color:#6A3A0C}
+#coachText span{display:block;margin-top:3px;font-size:12.5px;line-height:1.35;color:var(--ink-soft);font-weight:600}
+.coach-actions{flex:none;display:flex;flex-direction:column;gap:4px}
+.coach-actions button{min-width:74px;height:40px;min-height:40px;padding:0 12px 4px;border:0 solid transparent;border-image:var(--ui-btn-cream) 60 fill / 18px stretch;font-weight:900;font-size:13px;color:var(--ink);white-space:nowrap}
+/* The cell holding the glove sits above every highlighted neighbour, so the hand is never covered. */
+body.coaching .board .cell.coach-hand-host{z-index:20}
+.cell.coach-muted{opacity:1;filter:brightness(.84) saturate(.85)}
+/* During the untimed tutorial every tool is inactive; the hint button drops its glow so it reads as disabled too. */
+body.coaching #hintButton{height:60px;filter:grayscale(.55) brightness(.92) drop-shadow(0 3px 3px #00000040)}
+body.coaching #hintButton .ui-icon{width:28px;height:28px;filter:none}
+.cell.coach-target{overflow:visible;z-index:3;filter:brightness(1.1)}
+.cell.coach-target::after{content:"";position:absolute;inset:3px;border:3px solid #FFF6D5;box-shadow:0 0 0 2px #EBAF35,inset 0 0 13px #FFE8A0;border-radius:8px;animation:coachGlow 1.3s ease-in-out infinite;pointer-events:none}
+/* The glove's fingertip sits at (2.3%, 88.8%) of the 256x242 art; the box is one cell wide with the art's own aspect,
+   so left/top put that tip at the target cell's centre and press/scale pivots on the tip itself. */
+body.coaching .board{overflow:visible}
+.coach-hand{position:absolute;width:100%;height:auto;aspect-ratio:256/242;left:47.7%;top:-33.9%;z-index:5;pointer-events:none;transform-origin:2.3% 88.8%;animation:coachTap 1.4s ease-in-out infinite;filter:drop-shadow(0 2px 2px #45311b66)}
+.coach-hand.double-hand{animation:coachDouble 1.6s ease-in-out infinite}
+.coach-hand.drag-hand{animation:coachDrag 2s ease-in-out infinite}
+
+/* ---------- Toast ---------- */
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);opacity:0;pointer-events:none;z-index:10;display:flex;align-items:center;gap:7px;width:max-content;max-width:min(88vw,340px);min-height:38px;padding:6px 16px 7px 10px;white-space:nowrap;border:0 solid transparent;border-image:var(--ui-plaque-wood) 60 fill / 20px stretch;color:#FFF1D6;font-size:13px;font-weight:700;line-height:1.35;text-shadow:0 1px 0 #2a1406;transition:opacity .2s,transform .2s;filter:drop-shadow(0 5px 8px #0000006b)}
+.toast::before{content:"";flex:none;width:22px;height:22px;background:var(--ui-warning) center/contain no-repeat}
+/* Longer hint copy (not the one-line conflict pill) may wrap. */
+.toast{white-space:normal}
+.toast:is([data-short]){white-space:nowrap}
+.toast:empty::before{display:none}
+.toast.visible{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- Dialogs: gold-rim parchment card, ribbon title, chunky buttons ---------- */
+dialog{width:min(392px,calc(100% - 20px));max-height:calc(100dvh - 20px);margin:auto;padding:2px 12px 14px;border:18px solid transparent;border-image:var(--ui-panel) 44 fill / 18px stretch;background:transparent;color:var(--ink);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
+dialog[open]{animation:dialogIn .34s cubic-bezier(.34,1.56,.64,1)}
+dialog::backdrop{background:radial-gradient(ellipse at 50% 45%,#2c1a0bb0,#120904e6)}
+#modal[data-kind=fail]::backdrop{background:radial-gradient(ellipse at 50% 45%,#14223cb8,#060b16eb)}
+#modalContent{display:flex;flex-direction:column;gap:9px}
+#modalContent>*{margin:0}
+#modalContent>h2{--title-line:#7A3F0C;align-self:stretch;min-height:62px;margin:0 -8px;padding:2px 4px 20px;display:flex;align-items:center;justify-content:center;text-align:center;border:0 solid transparent;border-width:0 44px;border-image:var(--ui-ribbon) 0 150 fill / 0 44px stretch;color:#FFFDF4;font-size:23px;line-height:1.12;font-weight:900;letter-spacing:.5px;text-shadow:0 2px 0 var(--title-line),2px 0 0 var(--title-line),-2px 0 0 var(--title-line),0 -2px 0 var(--title-line),1.5px 1.5px 0 var(--title-line),-1.5px 1.5px 0 var(--title-line),1.5px -1.5px 0 var(--title-line),-1.5px -1.5px 0 var(--title-line),0 4px 3px #0000004d}
+#modal[data-kind=fail] #modalContent>h2{--title-line:#2F4668;border-image-source:var(--ui-ribbon-blue)}
+html[lang=en] #modalContent>h2{font-size:clamp(16px,5.2vw,21px);white-space:nowrap;letter-spacing:0}
+.dialog-kicker{text-align:center;font-size:11.5px;letter-spacing:1px;font-weight:800;color:#8A5A1E;margin-top:-8px!important}
+.dialog-kicker.wheat{display:flex;align-items:center;justify-content:center;gap:6px;margin:0 0 -4px!important;font-size:12px}
+.dialog-kicker.wheat img{width:22px;height:22px;object-fit:contain}
+.dialog-kicker.wheat img:last-child{transform:scaleX(-1)}
+#modalContent>p{font-size:13px;line-height:1.6;color:var(--ink-soft);text-align:center}
+.dialog-note{padding:10px 16px 11px;border:0 solid transparent;border-image:var(--ui-plaque) 60 fill / 18px stretch;font-weight:700;color:var(--ink)!important}
+.dialog-foot{font-size:11px!important;color:#9A7C58!important;font-weight:600}
+.dialog-medal{align-self:center;width:96px;height:82px;display:grid;place-items:center;background:var(--ui-medallion) center/contain no-repeat;filter:drop-shadow(0 4px 4px #0000003d)}
+.dialog-medal img{width:50px;height:50px;object-fit:contain;margin-top:-8px}
+.dialog-medal.hero{position:relative;width:132px;height:132px;background:none}
+.dialog-medal.hero .medal-rays{position:absolute;inset:-22%;width:144%;height:144%;opacity:.6;animation:raysSpin 8s linear infinite;-webkit-mask-image:radial-gradient(circle,#000 40%,transparent 68%);mask-image:radial-gradient(circle,#000 40%,transparent 68%)}
+.dialog-medal.hero .medal-chapter{position:relative;width:104px;height:104px;margin:0;border-radius:50%;object-fit:cover;box-shadow:0 0 0 6px #F2B441,0 0 0 9px #9A6418,0 6px 12px #0000005c}
+.dialog-medal.frost{width:150px;height:130px;background:radial-gradient(ellipse 50% 22% at 50% 88%,#FFFFFFd9,#DDEBFA80 60%,#0000 72%)}
+.dialog-medal.frost img{width:124px;height:124px;margin:0;filter:drop-shadow(0 4px 10px #6C9AD099)}
+.timer-notice{align-self:center;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:28px;padding:3px 14px 4px 8px;border-radius:14px;background:#F6E2B4;box-shadow:inset 0 0 0 1.5px #E2B863;color:#6A4412!important;font-size:12px!important;line-height:1.2!important;font-weight:800;text-align:center}
+.timer-notice img{width:18px;height:18px;flex:none}
+.timer-notice.long{align-self:stretch;display:flex;justify-content:flex-start;gap:8px;min-height:38px;padding:7px 12px;border-radius:12px;background:#F8E6BE;box-shadow:inset 0 0 0 1.5px #EBC878;font-size:12.5px!important;text-align:left}
+.timer-notice.long img{width:22px;height:22px}
+.result-steps.track .task-step:not(.done):not(.active){background:var(--ui-step-silver) center/100% 100% no-repeat;color:#3E4450;font-size:17px;text-shadow:0 1px 0 #fffc}
+#modal[data-kind=travel] .result-steps.track .task-step{width:44px;height:44px}
+#modal[data-kind=travel] .result-steps.track::before{height:8px;margin-top:-4px;background:linear-gradient(#E6E9EE,#A9AFB9);box-shadow:inset 0 0 0 1px #7C8390}
+#modal[data-kind=travel] .result-art.chapter{border-radius:16px}
+@media(max-height:720px){#modal[data-kind=travel] .result-steps.track .task-step{width:36px;height:36px;font-size:15px}}
+#travelButton{height:66px;font-size:23px}
+#modal[data-kind=travel] .result-art.chapter{aspect-ratio:16/9}
+/* The short offer card never needs to scroll, so its close coin can sit on the card's corner like the benchmark. */
+#modal[data-kind=fail]{overflow:visible}
+.dialog-actions{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.dialog-actions.row{flex-direction:row}
+.dialog-actions.row>button{flex:1}
+.dialog-actions button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;height:48px;padding:0 20px 5px;border:0 solid transparent;border-image:var(--ui-btn-cream) 60 fill / 22px stretch;color:var(--ink);font-size:16px;font-weight:900;filter:drop-shadow(0 3px 3px #0000004d)}
+.dialog-actions button img{width:28px;height:28px;object-fit:contain;flex:none}
+.dialog-actions .primary{height:58px;border-image-source:var(--ui-btn-green-gold);border-image-width:27px;color:#FFFFFF;font-size:20px;text-shadow:0 3px 0 #234400,2px 0 0 #234400,-2px 0 0 #234400,0 -2px 0 #234400,1.5px 1.5px 0 #234400,-1.5px 1.5px 0 #234400,1.5px -1.5px 0 #234400,-1.5px -1.5px 0 #234400}
+.dialog-actions .primary img{width:32px;height:32px;filter:drop-shadow(0 2px 0 #23440099)}
+.fail-hero{align-self:stretch;height:132px;margin:-6px 0 -4px;display:grid;place-items:center}
+.fail-hero img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 6px 8px #6C9AD066)}
+#modal[data-kind=fail] #modalContent>h2{min-height:70px;font-size:26px;margin:-10px -22px 0;border-width:0 52px;border-image-width:0 52px}
+.dialog-actions button:focus:not(:focus-visible){outline:none}
+.dialog-actions.row>button{height:50px;padding:0 10px 5px;font-size:15px}
+.dialog-actions.row>.primary{font-size:16px}
+html[lang=en] .dialog-actions.row>button{font-size:14px;line-height:1.1}
+#settingsClose{border-image-source:var(--ui-btn-gold);color:#5A3108;text-shadow:0 1px 0 #FFE9A6}
+.dialog-actions .secondary{align-self:center;min-width:62%}
+.dialog-actions.row .secondary{min-width:0}
+
+/* Result: stars, repair illustration, info row, step medallions, repair bar */
+.result-stars{display:flex;justify-content:center;align-items:flex-end;gap:0;margin:-4px 0 -2px}
+.result-stars img{width:70px;height:70px;object-fit:contain;filter:drop-shadow(0 3px 2px #0000004d);animation:starPop .5s cubic-bezier(.34,1.56,.64,1) backwards}
+.result-stars img:nth-child(2){width:86px;height:86px;margin:0 -4px 12px;animation-delay:.12s}
+.result-stars img:nth-child(3){animation-delay:.24s}
+.result-art{position:relative;aspect-ratio:16/9;border:5px solid transparent;border-image:var(--ui-panel) 34 / 5px stretch;border-radius:12px;overflow:hidden;background:#3a2a1c}
+.result-art .result-room{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.result-art .result-family{position:absolute;left:50%;bottom:-4%;height:98%;transform:translateX(-50%);object-fit:contain;filter:drop-shadow(0 4px 6px #0000006b)}
+.result-art.chapter{aspect-ratio:2/1}
+.result-info{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:4px 16px 5px;border:0 solid transparent;border-image:var(--ui-plaque) 60 fill / 18px stretch;color:var(--ink)!important;font-weight:800;font-size:13.5px!important}
+.result-info img{width:34px;height:34px;object-fit:contain;flex:none}
+.result-steps{position:relative;display:flex;justify-content:center;gap:7px}
+.result-steps .task-step{width:28px;height:28px;font-size:13px}
+.result-steps.track{justify-content:space-between;margin-inline:6%}
+.result-steps.track::before{content:"";position:absolute;left:14px;right:14px;top:50%;height:6px;margin-top:-3px;border-radius:3px;background:#C9A86A;box-shadow:inset 0 1px 0 #8C6A30}
+.result-steps.track .task-step{position:relative;width:34px;height:34px;font-size:15px}
+.result-bar{position:relative;height:30px;padding:6px 9px;border:0 solid transparent;border-image:var(--ui-bar) 30 fill / 11px stretch}
+.result-bar>span{display:block;height:100%;border-radius:9px;background:linear-gradient(#FFE28A,#F7B13A 55%,#E98A1A);box-shadow:inset 0 2px 0 #FFF6C8b0}
+.result-bar>b{position:absolute;inset:0;display:grid;place-items:center;color:#FFF8E6;font-size:13px;font-weight:900;text-shadow:0 1px 0 #4a2208,1px 0 0 #4a2208,-1px 0 0 #4a2208,0 -1px 0 #4a2208}
+
+/* Map: chapter cards with thumbnail and five round level medallions */
+.map-counter{align-self:center;min-width:88px;padding:3px 16px 5px;border:0 solid transparent;border-image:var(--ui-tag) 40 fill / 13px stretch;color:#5A3108;font-weight:900;font-size:13px;text-align:center;margin-top:-6px!important}
+.map-chapter{display:grid;grid-template-columns:62px 1fr;grid-template-rows:auto auto;column-gap:10px;row-gap:3px;align-items:center;padding:10px 13px 10px 11px;border:0 solid transparent;border-image:var(--ui-plaque) 60 fill / 20px stretch}
+.map-thumb{grid-row:1/3;position:relative;width:62px;height:62px;border-radius:10px;overflow:hidden;box-shadow:0 0 0 2px #E2AC45,0 2px 3px #0000004d}
+.map-thumb img{display:block;width:100%;height:100%;object-fit:cover}
+.map-thumb .map-lock{position:absolute;right:2px;bottom:2px;width:24px;height:28px;object-fit:contain}
+.map-chapter.locked .map-thumb>img:first-child{filter:grayscale(.85) brightness(.82)}
+.map-chapter h3{display:flex;align-items:center;gap:6px;margin:0;font-size:15px;line-height:1.2;font-weight:900;color:var(--ink);min-width:0}
+.map-done{flex:none;padding:1px 10px 3px;border:0 solid transparent;border-image:var(--ui-tag) 40 fill / 9px stretch;font-size:10.5px;color:#5A3108;font-weight:900}
+.map-levels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.map-levels button{justify-self:center;width:100%;max-width:44px;aspect-ratio:1;min-height:40px;display:grid;place-items:center;background:var(--ui-round) center/contain no-repeat;color:var(--ink);font:900 14px/1 system-ui,sans-serif}
+.map-levels button.complete{background-image:var(--ui-step-done)}
+.map-levels button.current{background-image:var(--ui-step-current);color:#6A3A08;animation:currentPulse 1.6s ease-in-out infinite}
+.map-levels button.complete.current{background-image:var(--ui-step-done)}
+.map-levels button:disabled{background-image:var(--ui-step-locked);color:#EFE6D8;opacity:1;filter:none;text-shadow:0 1px 0 #0007}
+
+/* Settings rows */
+.setting-row{display:flex;align-items:center;gap:10px;min-height:60px;padding:8px 11px 9px 11px;border:0 solid transparent;border-image:var(--ui-plaque) 60 fill / 22px stretch;font-size:14px;font-weight:800}
+.setting-icon{flex:none;width:42px;height:42px;display:grid;place-items:center;background:var(--ui-round) center/contain no-repeat}
+.setting-icon img{width:26px;height:26px;object-fit:contain}
+.setting-label{flex:1;min-width:0}
+.setting-row button{flex:none;min-width:98px;height:42px;padding:0 14px 4px;border:0 solid transparent;border-image:var(--ui-btn-cream) 60 fill / 19px stretch;font-size:13px;font-weight:900;color:var(--ink);filter:drop-shadow(0 2px 2px #00000040)}
+.setting-row button.danger,#wipeConfirm{border-image-source:var(--ui-btn-cream);color:#B23A1E}
+#wipeConfirm{font-weight:900}
+.setting-row button.on{border-image-source:var(--ui-btn-green);color:#fff;text-shadow:0 1px 0 #2F5A00,1px 0 0 #2F5A00,-1px 0 0 #2F5A00}
+
+html:has(dialog[open]),body:has(dialog[open]){height:100dvh;overflow:hidden}
+body:has(dialog[open]) .game{max-height:100dvh;overflow:hidden}
+.juice-layer{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:40}
+
+/* ---------- Coaching layout ---------- */
+/* The practice board is only 4脳4, so it gives up height to let the scene run edge to edge; the 0% repair bar is hidden until play. */
+body.coaching .board{width:min(100%,35.5dvh,380px)}
+body.coaching .repair-line{display:none}
+body.coaching .task-banner{padding-right:84px}
+body.coaching .clock{position:relative;z-index:1;margin-left:-86px;height:32px;min-width:0;padding:0 11px 0 7px;font-size:13px;border-image-width:16px}
+body.coaching .clock .ui-icon{width:18px;height:18px}
+
+/* ---------- Short screens (360脳640 class) ---------- */
+@media(max-height:720px){
+  .game{grid-template-rows:44px minmax(0,1fr) auto;gap:5px;padding-top:max(10px,env(safe-area-inset-top));padding-bottom:max(10px,env(safe-area-inset-bottom))}
+  .topbar{height:44px}
+  #levelLabel{height:36px;font-size:13px;border-image-width:18px;padding:0 14px}
+  .brand{font-size:15px}
+  .story{gap:4px}
+  .scene-wrap{border-width:5px;border-image-width:5px}
+  .task-heading{height:40px}
+  .task-banner{height:38px;border-image-width:14px 21px}
+  .task-banner h1{font-size:15px}
+  .task-step{width:19px;height:19px;font-size:10px}
+  .clock{height:38px;min-width:84px;font-size:17px;border-image-width:19px}
+  .clock .ui-icon{width:22px;height:22px}
+  .repair-line,.repair-track{height:18px}
+  .repair-track{padding:4px 6px;border-image-width:7px}
+  .repair-track::after{inset:4px 6px}
+  #repairText{font-size:10px}
+  #repairIcon{width:26px;height:26px}
+  .puzzle-panel{gap:6px}
+  .board{--frame:15px;width:min(100%,39dvh,410px)}
+  .tools{gap:8px}
+  .tools button{height:52px;font-size:12px;border-image-width:23px;padding-bottom:7px}
+  .tools button .ui-icon{width:24px;height:24px}
+  #hintButton{height:56px}
+  #hintButton .ui-icon{width:27px;height:27px}
+  .board-coach{min-height:76px;padding:4px 5px 4px 6px;border-width:12px;border-image-width:14px}
+  #coachText strong{font-size:17px}
+  #coachText span{font-size:12px}
+  body.coaching .board{width:min(100%,33dvh,380px)}
+  dialog{padding:0 10px 10px;border-width:16px;border-image-width:16px}
+  #modalContent{gap:7px}
+  #modalContent>h2{min-height:52px;font-size:20px;padding-bottom:12px;border-width:0 38px;border-image-width:0 38px}
+  .result-stars img{width:50px;height:50px}
+  .result-stars img:nth-child(2){width:62px;height:62px;margin-bottom:8px}
+  .result-art{aspect-ratio:2/1}
+  .result-art.chapter{aspect-ratio:2.4/1}
+  .dialog-medal{width:80px;height:68px}
+  .dialog-medal img{width:42px;height:42px}
+  .dialog-medal.frost{width:104px;height:92px}
+  .dialog-medal.frost img{width:88px;height:88px}
+  .dialog-actions button{height:44px;font-size:15px}
+  .dialog-actions .primary{height:50px;font-size:17px}
+  .map-chapter{grid-template-columns:48px 1fr;padding:8px 11px 8px 10px;column-gap:8px;row-gap:2px}
+  .map-thumb{width:48px;height:48px;border-radius:8px}
+  .map-thumb .map-lock{width:19px;height:22px}
+  .map-chapter h3{font-size:13.5px}
+  .map-levels button{min-height:38px;max-width:40px;font-size:13px}
+  .setting-row{min-height:54px;padding:7px 10px 8px}
+  .setting-row button{height:40px;min-width:90px}
+  .level-start-card{width:min(100%,270px);gap:4px;padding:18px 12px 8px;border-width:13px;border-image-width:13px}
+  .level-start-tag{top:-26px;height:32px;font-size:14px}
+  .level-start-medal{width:70px;height:58px}
+  .level-start-medal img{width:36px;height:36px}
+  .level-start-copy{gap:3px}
+  .level-start-copy strong{font-size:16px}
+  .level-start-copy>span{font-size:11.5px}
+  .level-start-time{height:32px;font-size:13px}
+  .level-start-mode{height:36px}
+  .level-start-mode .mode-opt{height:26px;min-height:26px;padding:0 9px 1px;font-size:12.5px}
+  body.intro-open #playButton{height:54px;font-size:20px;border-image-width:24px}
+  .banner-ribbon{min-height:70px;padding-bottom:20px;border-width:0 48px;border-image-width:0 48px}
+  .banner-item.frost{width:26%;transform:translateY(-60%)}
+  .brand{max-width:120px;height:40px;font-size:13px;padding:0 8px 6px 24px}
+  .dialog-medal.hero{width:100px;height:100px}
+  .dialog-medal.hero .medal-chapter{width:78px;height:78px}
+  .result-steps.track .task-step{width:28px;height:28px;font-size:13px}
+  .dialog-close{top:-36px;right:-30px}
+  .offer-badge{width:92px;height:98px}
+  .offer-badge b{font-size:27px}
+  .fail-level img{width:54px;height:54px}
+}
+/* ---------- Very short screens (320脳568 class) ---------- */
+@media(max-height:600px){
+  .game{grid-template-rows:42px minmax(0,1fr) auto;gap:4px}
+  .topbar{height:42px}
+  .round-button{width:42px;height:42px;min-height:42px}
+  .round-button .ui-icon{width:24px;height:24px}
+  #levelLabel{height:34px;min-width:72px}
+  .task-heading{height:36px}
+  .task-banner{height:34px}
+  .task-banner h1{font-size:14px}
+  .clock{height:34px;min-width:78px;font-size:16px}
+  .repair-line,.repair-track{height:16px}
+  .repair-track{padding:4px 5px}
+  #repairText{display:none}
+  .board{--frame:13px;width:min(100%,37dvh,410px)}
+  .tools button{height:46px;min-height:44px;font-size:11px;padding-bottom:6px;border-image-width:20px}
+  .tools button .ui-icon{width:21px;height:21px}
+  #hintButton{height:48px}
+  #hintButton .ui-icon{width:23px;height:23px}
+  .board-coach{min-height:66px;padding:3px 4px 3px 5px;border-width:11px;border-image-width:12px}
+  .board-coach::after{bottom:-12px;width:26px;height:16px}
+  #coachText small{font-size:9px}
+  #coachText strong{font-size:15px}
+  #coachText span{font-size:11px;line-height:1.3}
+  .coach-actions button{height:40px;min-width:62px;padding:0 9px 4px;font-size:12px}
+  body.coaching .board{width:min(100%,27dvh,380px)}
+  #modalContent>h2{min-height:48px;font-size:18px}
+  .result-stars img{width:42px;height:42px}
+  .result-stars img:nth-child(2){width:52px;height:52px}
+  .result-art{aspect-ratio:2.3/1}
+  .result-info{min-height:40px;font-size:12.5px!important}
+  .result-info img{width:28px;height:28px}
+  .result-steps .task-step{width:24px;height:24px;font-size:11px}
+  .map-chapter{grid-template-columns:40px 1fr}
+  .map-thumb{width:40px;height:40px}
+  .map-levels button{min-height:36px;max-width:38px}
+}
+/* ---------- Narrow phones ---------- */
+@media(max-width:370px){
+  .game{padding-inline:8px}
+  .topbar{gap:4px}
+  .topbar nav{gap:3px}
+  .brand{font-size:14px;letter-spacing:0}
+  html[lang=en] .brand{display:none}
+  #levelLabel{min-width:0;padding:0 12px}
+  .task-banner{gap:5px;padding-left:14px;padding-right:10px}
+  .task-banner h1{font-size:14px}
+  .task-steps{gap:2px}
+  .clock{min-width:78px;padding-inline:8px 11px}
+  .tools{gap:7px}
+  dialog{width:calc(100% - 14px)}
+}
+@media(max-width:330px){
+  .brand{display:none}
+  .task-step{width:17px;height:17px;font-size:9px}
+  .map-chapter{grid-template-columns:1fr}
+  .map-thumb{display:none}
+}
+/* ---------- Landscape phones ---------- */
+@media(orientation:landscape) and (max-height:600px){
+  .game{width:min(100%,960px);grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:42px minmax(0,1fr);gap:6px 12px}
+  .topbar{grid-column:1/-1}
+  .story{grid-column:1;grid-row:2}
+  .puzzle-panel{grid-column:2;grid-row:2;justify-content:center}
+  .board{width:min(100%,calc(100dvh - 150px))}
+  body.coaching .board{width:min(100%,calc(100dvh - 220px))}
+}
+@media(min-width:1000px){.game{width:480px;padding-top:18px}}
+
+@keyframes pop{0%{transform:scale(.5)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+@keyframes clockPulse{50%{opacity:.55}}
+@keyframes sheen{60%,100%{transform:translateX(100%)}}
+@keyframes landIn{0%{transform:scale(.4) translateY(-10px);opacity:.4}100%{transform:none;opacity:1}}
+@keyframes conflictBlink{0%,60%{filter:brightness(1.12)}100%{filter:none}}
+@keyframes hintGlow{50%{box-shadow:inset 0 0 0 3px #FFF3B0,inset 0 0 22px #FFD24A}}
+@keyframes coachTap{0%,100%{transform:translate(5px,-6px)}35%,55%{transform:translate(0,0) scale(.9)}}
+@keyframes coachDouble{0%,100%{transform:translate(5px,-6px)}25%,60%{transform:translate(0,0) scale(.9)}40%,75%{transform:translate(4px,-5px)}}
+/* The hand is exactly one cell wide, so 100% of its own width slides the fingertip onto the neighbouring target cell. */
+@keyframes coachDrag{0%,18%{transform:translateX(0)}75%,90%{transform:translateX(100%)}100%{transform:translateX(0)}}
+@keyframes coachGlow{50%{box-shadow:0 0 0 3px #F2B441,inset 0 0 20px #FFE8A0}}
+@keyframes dialogIn{0%{transform:scale(.82);opacity:0}100%{transform:none;opacity:1}}
+@keyframes starPop{0%{transform:scale(0) rotate(-25deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes currentPulse{50%{filter:brightness(1.15) drop-shadow(0 0 6px #FFD24A)}}
+@keyframes conflictHit{0%{filter:brightness(1.25)}100%{filter:none}}
+@keyframes ghostFade{0%{opacity:.7;transform:scale(1.1)}100%{opacity:0;transform:scale(.8)}}
+@keyframes linkDraw{0%{stroke-dashoffset:var(--len);opacity:1}30%{stroke-dashoffset:0;opacity:1}78%{opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+@keyframes ringPulse{0%{transform:scale(.7);opacity:1}100%{transform:scale(1.25);opacity:0}}
+@keyframes fadeIn{0%{opacity:0}100%{opacity:1}}
+@keyframes playPulse{50%{filter:brightness(1.12) drop-shadow(0 0 10px #C8F060) drop-shadow(0 4px 4px #00000066)}}
+@keyframes raysSpin{to{rotate:360deg}}
+@keyframes raysIn{0%{scale:.3;opacity:0}100%{scale:1;opacity:.95}}
+@keyframes itemDrop{0%{transform:translateY(-160%) scale(.4);opacity:0}100%{transform:translateY(-58%);opacity:1}}
+@keyframes ribbonStamp{0%{transform:scale(2.2);opacity:0}100%{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ---------- v11 product fixes ---------- */
+.star-rule{margin:-6px 0 2px;text-align:center;font:800 12px/1.2 system-ui,sans-serif;color:#8A5A22}
+.result-art.repair-pair{display:grid;grid-template-columns:1fr 26px 1fr;align-items:center;gap:0;padding:6px;background:#3a2a1c}
+.repair-pair>span{position:relative;display:block;height:100%;border-radius:8px;overflow:hidden;box-shadow:0 2px 4px #0006}
+.repair-pair>span>img:first-child{width:100%;height:100%;object-fit:cover;display:block}
+.repair-pair .pair-before>img:first-child{filter:saturate(.55) brightness(.82) hue-rotate(12deg)}
+.repair-pair b{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);padding:2px 9px;border-radius:10px;background:#3a1f0cd0;color:#FFE9B8;font:900 11px/1.3 system-ui,sans-serif;white-space:nowrap}
+.repair-pair .pair-after{outline:2px solid #FFD66B;outline-offset:-2px;animation:pairGlow 1.6s ease-in-out infinite alternate}
+.repair-pair .pair-prop{position:absolute;right:4px;top:4px;width:30%;max-width:44px;filter:drop-shadow(0 2px 2px #0008);animation:starPop .5s .3s cubic-bezier(.34,1.56,.64,1) backwards}
+.repair-pair .pair-arrow{width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 1px 1px #0008)}
+@keyframes pairGlow{from{box-shadow:0 0 0 #FFD66B00}to{box-shadow:0 0 12px #FFD66Bcc}}
+#coachText span{white-space:normal;display:block}
+/* Coach bubble keeps one fixed height on every step, so the board below never resizes between steps:
+   title is always one line, the hint always reserves exactly two lines. */
+.board-coach{height:118px;min-height:118px;flex:none}
+#coachText strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#coachText span.coach-note{color:#B5442A;font-weight:800}
+#coachText span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;min-height:calc(2lh + 3px)}
+@media(max-height:720px){.board-coach{height:106px;min-height:106px}}
+@media(max-height:600px){.board-coach{height:94px;min-height:94px}}
+/* Tutorial v5: the plank that causes the exclusion glows; the cells it rules out keep a dashed outline. */
+.cell.coach-reason{z-index:2;filter:brightness(1.12)}
+.cell.coach-reason::after{content:"";position:absolute;inset:1px;border:3px solid #7CE0FF;border-radius:9px;box-shadow:0 0 10px 2px #7CE0FFcc,inset 0 0 10px #7CE0FF88;animation:coachGlow 1.3s ease-in-out infinite;pointer-events:none}
+.cell.coach-zone::after{content:"";position:absolute;inset:4px;border:2px dashed #FFF6D5;border-radius:7px;background:#E0503A26;pointer-events:none}
+@media(max-height:720px){.star-rule{font-size:11px;margin:-4px 0 0}}
+
+/* ---------- v11 art fixes: tool buttons share the dialog-button bevel; combo chip ---------- */
+.tools button{position:relative}
+.tools button::after{content:"";position:absolute;left:14%;right:14%;top:6px;height:34%;border-radius:12px 12px 40% 40%;background:linear-gradient(#FFFFFF8c,#FFFFFF00);pointer-events:none}
+.tools button:not(:disabled):active{transform:translateY(2px) scale(.97);filter:brightness(.95) drop-shadow(0 1px 1px #00000059)}
+.combo-chip{position:absolute;left:50%;top:-10px;z-index:6;transform:translate(-50%,-100%) scale(.6);padding:3px 12px 5px;border:0 solid transparent;border-image:var(--ui-plaque-wood) 60 fill / 14px stretch;color:#fff;font:900 16px/1 system-ui,sans-serif;text-shadow:0 2px 0 #7a2c0c,1px 0 0 #7a2c0c,-1px 0 0 #7a2c0c;white-space:nowrap;pointer-events:none;opacity:0}
+.combo-chip.show{animation:comboChip 1.1s cubic-bezier(.34,1.56,.64,1) forwards}
+.combo-chip[data-tier="3"]{font-size:19px}.combo-chip[data-tier="4"]{font-size:22px}
+@keyframes comboChip{0%{opacity:0;transform:translate(-50%,-80%) scale(.5)}18%{opacity:1;transform:translate(-50%,-100%) scale(1.12)}32%{transform:translate(-50%,-100%) scale(1)}78%{opacity:1}100%{opacity:0;transform:translate(-50%,-150%) scale(1)}}
+@media(prefers-reduced-motion:reduce){.combo-chip.show{animation:none;opacity:1}}
+
+/* ---------- v12 expert round 2 ---------- */
+#levelLabel small.home-cue{margin-left:5px;padding:1px 6px 2px;border-radius:9px;background:#5a3413;color:#FFE3A6;font:900 10px/1.3 system-ui,sans-serif;letter-spacing:0}
+@media(max-width:370px){#levelLabel small.home-cue{margin-left:3px;padding:1px 4px 2px}}
+.fail-hero.family-moment{position:relative;aspect-ratio:2/1;border:5px solid transparent;border-image:var(--ui-panel) 34 / 5px stretch;border-radius:12px;overflow:hidden;background:#1B2638}
+.fail-hero.family-moment .fail-room{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.7) brightness(.8) hue-rotate(-8deg)}
+.fail-hero.family-moment .fail-clock{position:absolute;left:4px;bottom:2px;width:34%;height:auto;max-width:96px;filter:drop-shadow(0 3px 3px #0008)}
+.fail-hero.family-moment .fail-bubble{position:absolute;right:6px;top:6px;max-width:58%;padding:5px 9px;border-radius:12px 12px 2px 12px;background:#FFF8EA;color:var(--ink);font:800 12px/1.3 system-ui,sans-serif;box-shadow:0 2px 3px #0005;animation:starPop .5s .4s cubic-bezier(.34,1.56,.64,1) backwards}
+
+#brand{letter-spacing:.5px}
+html[lang=en] .brand{display:flex}
+@media(max-width:370px){html[lang=en] .brand{display:flex;font-size:13px}}
+
+/* v12: short home plate in English never truncates (Home 2/4). */
+html[lang=en] .brand{font-size:13px;letter-spacing:0;padding-left:26px;padding-right:8px}
+html[lang=en] #brand{letter-spacing:0}
+.result-bar>b{font-size:14px}
+
+@media(max-width:330px){html[lang=en] .brand,.brand{display:flex;max-width:none;flex:1 1 auto;padding:0 4px 6px 20px;font-size:12px;background-size:100% 100%}html[lang=en] #brand,#brand{overflow:visible}}
+
+/* ---------- v13 top art, plan A (after play-warmth-thread-test): full-bleed story scene, translucent HUD over it,
+   task strip as a wood subtitle bar inside the scene, scene fades into the page. Board / coach / tools untouched. ---------- */
+@media (orientation:portrait),(min-height:601px){
+  html body .game{--gx:10px;--gtop:max(10px,env(safe-area-inset-top));position:relative;grid-template-rows:minmax(0,1fr) auto}
+  /* HUD floats over the scene: small translucent pills instead of solid gold plaques */
+  html body .topbar{position:absolute;z-index:6;top:calc(var(--gtop) - 2px);left:var(--gx);right:var(--gx);height:40px;gap:6px;pointer-events:none}
+  html body .topbar>*{pointer-events:auto}
+  html body #levelLabel,html body .brand{height:30px;min-width:0;margin:0;padding:0 11px;border:1.5px solid #E8C98FBF;border-image:none;border-radius:99px;background:#28180CA0;color:#FFF6E4;font-size:13px;font-weight:900;letter-spacing:.3px;text-shadow:0 1px 0 #1a0c04;align-items:center;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+  html body .brand{flex:0 1 auto;max-width:150px;margin-right:auto;justify-content:center}
+  html body .round-button{width:40px;height:40px;min-height:40px;border:1.5px solid #E8C98FBF;border-radius:50%;background:#28180CA0;color:#FFF6E4;filter:none;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+  html body .round-button .ui-icon{width:23px;height:23px}
+  html body .topbar nav{gap:6px}
+  /* Story: the scene runs edge to edge and up under the HUD; no gold frame */
+  html body .story{grid-template-rows:minmax(0,1fr) auto;gap:4px}
+  html body .scene-wrap{grid-row:1;grid-column:1;margin:calc(-1 * var(--gtop)) calc(-1 * var(--gx)) 0;width:calc(100% + 2 * var(--gx));height:calc(100% + var(--gtop));max-height:none;border:0;border-image:none;border-radius:0;background:transparent;box-shadow:none}
+  /* Bottom of the room dissolves into the wood page, so story and board read as one screen */
+  html body #scene{-webkit-mask-image:linear-gradient(#000 0,#000 74%,#0000 100%);mask-image:linear-gradient(#000 0,#000 74%,#0000 100%)}
+  /* Task strip = wood subtitle bar laid over the lower scene */
+  html body .task-heading{grid-row:1;grid-column:1;align-self:end;position:relative;z-index:4;height:auto;margin:0 2px 6px;padding:4px;gap:6px;border:1.5px solid #E8C98FCC;border-radius:12px;background:repeating-linear-gradient(178deg,#FFFFFF0d 0 3px,#0000000d 3px 7px),linear-gradient(#8A5A33F0,#6B4526F0);box-shadow:0 3px 10px #0000005c}
+  html body .task-banner{height:36px;padding:0 6px 0 8px;border:0;border-image:none}
+  html body .task-banner h1{color:#FFF6E4;text-shadow:0 1px 0 #3a1f0c}
+  html body .clock{height:34px;min-width:84px;border:1px solid #E8C98F99;border-image:none;border-radius:10px;background:#28180C8C}
+  html body .repair-line{grid-row:2}
+}
+@media (orientation:portrait) and (max-width:370px),(min-height:601px) and (max-width:370px){html body .game{--gx:8px}html body .topbar{gap:4px}html body .topbar nav{gap:4px}}
+
+/* ---------- v14 page background: frozen ice instead of wood; frost ferns on both edges thaw as the home is repaired.
+   v15 (variant D): each side stacks 5 baked melt frames (assets/ui-frost-melt-0..4, frame k = k repairs done);
+   app.js renderText() sets each frame's opacity so the ferns shrink into the corners and are gone after the 5th repair. Board / coach / tools untouched. ---------- */
+html body{--frost:1;background-color:#22344F;background-image:radial-gradient(ellipse 110% 70% at 50% 60%,#0000 40%,#0a142699 100%),var(--ui-ice);background-size:100% 100%,cover;background-position:center,center}
+html body .game{position:relative;isolation:isolate}
+html body .frost-side{position:absolute;z-index:-1;top:34%;bottom:0;width:clamp(84px,28vw,120px);pointer-events:none;
+  -webkit-mask-image:linear-gradient(#0000,#000 18%);mask-image:linear-gradient(#0000,#000 18%);filter:drop-shadow(0 0 6px #cfe6ff40)}
+html body .frost-side.l{left:0}
+html body .frost-side.r{right:0;transform:scaleX(-1)}
+html body .frost-side i{position:absolute;inset:0;background-repeat:no-repeat;background-position:0 0;background-size:100% 100%;opacity:0;transition:opacity 1.6s ease}
+@media (orientation:landscape) and (max-height:600px){html body .frost-side{top:0;-webkit-mask-image:none;mask-image:none}}
+
+/* ---------- v16 task HUD = plan A layout in plan E's light capsule: one dark translucent card (same language as the
+   top pills), title on row 1, progress on row 2, clock in its own column; the 5 step medals are gone. ---------- */
+.task-steps{display:none!important}
+@media (orientation:portrait),(min-height:601px){
+  html body .story .task-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center;gap:3px 0;height:auto;margin:0 4px 6px;padding:5px 4px 7px 14px;border:1.5px solid #E8C98FBF;border-radius:18px;background:#28180CB3;box-shadow:0 3px 10px #0000004d;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+  html body .story .task-banner{grid-row:1;grid-column:1;height:auto;min-height:24px;padding:0;border:0;border-image:none;background:none}
+  html body .story .task-banner h1{font-size:17px;color:#FFF6E4;text-shadow:0 1px 0 #1a0c04}
+  html body .story .repair-line{grid-row:2;grid-column:1;display:flex;align-items:center;gap:6px;height:auto;margin:0}
+  html body .story .repair-track{flex:1;height:12px;padding:0;border:0;border-image:none;border-radius:99px;background:#1A0E06;box-shadow:inset 0 1px 2px #000b,0 0 0 1px #E8C98F80;overflow:hidden}
+  html body .story .repair-track::after{inset:0;border-radius:99px}
+  html body .story #repairFill{border-radius:99px;box-shadow:inset 0 2px 0 #FFF6C8b0}
+  html body .story #repairText{position:static;display:block;flex:none;color:#FFF6E4;font:900 12px/1 system-ui,sans-serif;text-shadow:0 1px 0 #1a0c04;font-variant-numeric:tabular-nums}
+  html body .story #repairIcon{width:28px;height:28px;margin:-8px 0 -8px -3px}
+  html body .story .clock{grid-row:1/3;grid-column:2;align-self:stretch;flex-direction:column;gap:2px;height:auto;min-width:72px;margin:-1px 0 -3px 10px;padding:0 8px;border:0;border-left:1.5px solid #E8C98F55;border-image:none;border-radius:0;background:none;font-size:15px}
+  html body .story .clock .ui-icon{width:24px;height:24px}
+  /* Coaching hides the progress row; the capsule shrinks to one line with the clock inline */
+  body.coaching .story .task-heading{padding-block:5px}
+  body.coaching .story .repair-line{display:none}
+  body.coaching .story .clock{flex-direction:row;gap:4px;min-width:0;font-size:13px}
+  body.coaching .story .clock .ui-icon{width:18px;height:18px}
+  html[lang=en] body .story .task-banner h1{font-size:14px}
+}
+@media (orientation:portrait) and (max-height:720px),(min-height:601px) and (max-height:720px){
+  html body .story .task-banner h1{font-size:15px}
+  html body .story .task-heading{padding:4px 4px 6px 12px}
+  html body .story .clock{min-width:64px;font-size:14px}
+  html body .story .clock .ui-icon{width:21px;height:21px}
+}
+
+/* ---------- v17 CG gallery ("鍥炲繂鐢诲粖"): opened from the map; every painting unlocked for dev preview ---------- */
+#modal[data-kind=gallery]{width:min(440px,calc(100% - 16px))}
+.gallery-note{margin:-8px 0 0;text-align:center;font-size:12px;font-weight:800;color:#8A6234}
+.gallery{display:flex;flex-direction:column;gap:10px}
+.gallery-group h3{margin:0 0 6px;padding-left:4px;font-size:14px;font-weight:900;color:var(--ink)}
+.gallery-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.gallery-card{display:flex;flex-direction:column;min-height:0;padding:3px;border-radius:10px;background:#FFF6E4;box-shadow:0 0 0 2px #E2AC45,0 2px 4px #0000004d;text-align:left;overflow:hidden}
+.gallery-card img{display:block;width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:7px;background:#1B2638}
+.gallery-card.tall img{object-fit:contain}
+.gallery-card.square img{object-fit:contain;background:#E9D9BC}
+.gallery-card span{display:flex;flex-direction:column;gap:1px;padding:3px 3px 1px;min-width:0}
+.gallery-card b{font-size:12px;line-height:1.15;font-weight:900;color:var(--ink)}
+.gallery-card small{font-size:10px;line-height:1.2;color:#8A6234;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cg-view{margin:0;display:flex;flex-direction:column;gap:6px}
+.cg-view img{display:block;width:100%;aspect-ratio:3/2;object-fit:contain;border-radius:12px;background:#1B2638;box-shadow:0 0 0 3px #E2AC45,0 4px 10px #0000004d}
+.cg-view.tall img{aspect-ratio:auto;max-height:52dvh}
+.cg-view figcaption{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:700;color:#8A6234}
+.cg-view figcaption em{font-style:normal;min-width:0}
+.cg-view figcaption span{flex:none;font-variant-numeric:tabular-nums}
+#modal[data-kind=gallery] .dialog-actions+.dialog-actions{margin-top:0}
+
+/* ---------- v19: corner snowy branches removed; player-selectable page background (Settings → 背景). ---------- */
+html body .frost-side{display:none!important}
+.bg-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:4px 0 10px}
+.bg-card{position:relative;display:flex;flex-direction:column;min-height:0;padding:3px;border-radius:10px;background:#FFF6E4;box-shadow:0 0 0 2px #E2AC45,0 2px 4px #0000004d;overflow:hidden}
+.bg-card img{display:block;width:100%;aspect-ratio:9/14;object-fit:cover;border-radius:7px;background:#1B2638}
+.bg-card span{padding:3px 1px 1px;font-size:11.5px;font-weight:900;line-height:1.2;text-align:center;color:var(--ink)}
+.bg-card.on{background:#E6F7C8;box-shadow:0 0 0 3px #6DB52A,0 2px 6px #2F5A0066}
+.bg-card.on::after{content:"✓";position:absolute;top:6px;right:6px;width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#6DB52A;color:#fff;font:900 12px/1 system-ui,sans-serif;box-shadow:0 1px 2px #0006}
+@media(max-width:360px){.bg-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* ---------- v20 background fit: the portrait art (9:16) is painted inside the game column, not across the whole window,
+   so on wide screens it is no longer blown up into a blurry crop. Outside the column the same art is shown blurred and
+   dimmed as a backdrop. On phones the column is the full screen, so nothing changes there. ---------- */
+html body{background-image:none;background-color:#141E30}
+html body::before{content:"";position:fixed;inset:-40px;z-index:-2;pointer-events:none;background:var(--ui-ice) center/cover no-repeat;filter:blur(22px) brightness(.5) saturate(.9)}
+html body .game::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background-image:radial-gradient(ellipse 110% 70% at 50% 60%,#0000 45%,#0a142680 100%),var(--ui-ice);
+  background-size:100% 100%,cover;background-position:center,center 35%;background-repeat:no-repeat;
+  box-shadow:0 0 40px #000a}
+
+/* ---------- v21 clock ghosting fix: the base plaque style still painted a 2px dark-brown drop shadow under the new dark-ink
+   text on the cream card, which read as a double image. Use the same soft white emboss as the task title instead, and let
+   "不限时" fit inside the card instead of touching its right edge. ---------- */
+html body .story .clock,html body .story .clock b{text-shadow:0 1px 0 #FFFFFFB0}
+html body .story .clock b{font-weight:800;letter-spacing:0;white-space:nowrap;font-size:.92em}
+html body .story .clock{padding:0 6px 0 8px;overflow:visible}
+
+/* ---------- v21 UI font: 寒蝉圆黑 (ChillRound, open licence) everywhere, matching the soft snow / cream-card UI.
+   The woff2 is subset to the ~860 characters the game uses; any other glyph falls back to YaHei. ---------- */
+@font-face{font-family:GameChill;src:url(assets/fonts/chill.woff2) format("woff2");font-display:swap}
+html body,html body *{font-family:GameChill,"Microsoft YaHei UI","Microsoft YaHei","PingFang SC","Hiragino Sans GB","Noto Sans SC",system-ui,sans-serif!important}
+/* The face is already heavy; faking bold on top of it smears the strokes (another source of "ghosting"). */
+html{font-synthesis:none}
+
+/* ---------- v17 win card = web variant D without the ribbon: the repaired painting fills the top of the card
+   (bleeds over the dialog padding), fades into the parchment, and the stars sit on its lower edge. ---------- */
+/* Win card and story card share this hero frame (same ratio, same full-bleed spot), so stepping from one to the other
+   keeps the painting in place. 5:4 sits between the old tall win picture (1:1.05) and the small framed story one (3:2). */
+#modalContent>.result-hero{position:relative;margin:-2px -12px 0;aspect-ratio:5/4;border-radius:12px 12px 0 0;overflow:hidden;background:#2a1d12}
+.result-hero .result-room{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 40%}
+.result-hero::after{content:"";position:absolute;inset:auto 0 0;height:28%;background:linear-gradient(#FBF2D500,#FBF2D5);pointer-events:none}
+#modalContent .result-hero .result-stars{position:absolute;left:0;right:0;bottom:2px;z-index:2;margin:0}
+#modalContent>.result-hero+.star-rule{margin-top:-4px}
+@media(max-height:720px){#modalContent>.result-hero{margin:0 -10px 0;aspect-ratio:16/11}}
+@media(max-height:600px){#modalContent>.result-hero{aspect-ratio:16/10}}
+
+/* ---------- Story cards between levels / homes, ending, and the "Our story" book ---------- */
+#modal[data-kind=story] .result-art.story-art{aspect-ratio:3/2;border-radius:14px}
+#modal[data-kind=story] .result-art.story-art .result-room{object-position:50% 45%}
+/* Story card: the title ribbon rides the hero's faded lower edge (where the stars sit on the win card), kicker beneath it. */
+#modal[data-kind=story] #modalContent>.result-hero+h2{position:relative;z-index:2;margin-top:-50px}
+#modal[data-kind=story] #modalContent>.result-hero+h2+.dialog-kicker{margin:-8px 0 -2px!important}
+@media(max-height:720px){#modal[data-kind=story] #modalContent>.result-hero+h2{margin-top:-40px}}
+#modal.morphing{overflow:hidden}
+#modalContent>.story-text-block{margin:0;padding:10px 14px 11px;border:0 solid transparent;border-image:var(--ui-plaque) 60 fill / 18px stretch;font-size:13.5px;line-height:1.65;color:var(--ink);font-weight:600;text-align:left}
+.story-chapter-title{display:block;margin-bottom:2px;font-size:15px;font-weight:900;color:#7A3F0C;text-align:center}
+.story-lines{display:flex;flex-direction:column;gap:6px}
+.story-line{display:flex;align-items:flex-start;gap:8px;margin:0;font-size:13.5px;line-height:1.45;color:var(--ink)}
+.story-line.daughter{flex-direction:row-reverse;text-align:right}
+.story-line img{flex:none;width:38px;height:38px;border-radius:50%;object-fit:cover;object-position:50% 12%;background:#f3d9b6;border:2.5px solid #fff8ec;box-shadow:0 2px 0 #c99a55}
+.story-line span{padding:6px 11px 7px;border-radius:14px;background:#FFF8EA;box-shadow:inset 0 0 0 1.5px #E7C88E;font-weight:700}
+.story-line.daughter span{background:#FFF0F2;box-shadow:inset 0 0 0 1.5px #EFB8C6}
+.story-line b{display:block;font-size:11px;letter-spacing:1px;color:#a0662a}
+.story-line.daughter b{color:#b85a78}
+#modalContent>.story-next{margin:0;text-align:center;font-size:12.5px;font-weight:800;color:#8A5A1E}
+#modalContent>.story-next b{color:#3E7A12}
+.story-book{display:flex;flex-direction:column;gap:12px;max-height:min(62dvh,520px);overflow:auto;padding-right:2px}
+.story-book h3{margin:0 0 4px;font-size:15px;font-weight:900;color:#7A3F0C}
+.story-book ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.story-book li{font-size:12.5px;line-height:1.55;color:var(--ink)}
+.story-book li b{display:block;font-size:13px;color:#5A3108}
+#modal[data-kind=travel] .story-text-block{max-height:30dvh;overflow:auto}
+
+/* ---------- v18 D skin, pass 2 - matches the chosen D mockup (snow-watercolor-d-kit section 5): cream snow-capped pills for
+   level/home, navy snow round buttons with the kit's own house/gear art, a cream snow paper task banner with dark ink,
+   and the blue / orange / purple round tool buttons. Every bitmap keeps its aspect ratio (9-slice or contain), so nothing
+   stretches. Page = snowy night (ui-bg-ice), sides = snowy branches anchored bottom-left. Board / cells untouched. ---------- */
+html body .frost-side i{background-size:100% auto;background-position:0 100%}
+@media (orientation:portrait),(min-height:601px){
+  html body #levelLabel,html body .brand{height:34px;min-width:0;padding:0 2px;border:0 solid transparent;border-width:9px 15px 6px;border-image:var(--ui-hud-pill) 34 56 22 fill / 9px 15px 6px stretch;border-radius:0;background:none;color:#3B3550;font-size:13.5px;text-shadow:0 1px 0 #FFFFFFB0;-webkit-backdrop-filter:none;backdrop-filter:none;filter:drop-shadow(0 2px 3px #0a143066);box-sizing:border-box}
+  html body .round-button{width:41px;height:41px;min-height:41px;padding-top:3px;border:0;border-radius:0;background:var(--ui-hud-round) center/contain no-repeat;color:#F4F1FF;font-size:12.5px;text-shadow:0 1px 2px #0a1430;-webkit-backdrop-filter:none;backdrop-filter:none;filter:drop-shadow(0 2px 3px #0a143080)}
+  html body #mapButton{background-image:var(--ui-hud-map)}
+  html body #settingsButton{background-image:var(--ui-hud-settings)}
+  html body #mapButton .ui-icon,html body #settingsButton .ui-icon{visibility:hidden}
+  html body .story .task-heading{border:0 solid transparent;border-width:11px 15px 9px;padding:0 0 1px 2px;border-image:var(--ui-hud-card) 40 48 30 fill / 11px 15px 9px stretch;border-radius:0;background:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;filter:drop-shadow(0 3px 6px #0a143073)}
+  html body .story .task-banner h1{color:#3B3550;text-shadow:0 1px 0 #FFFFFFB0}
+  html body .story #repairText{color:#4A4266;text-shadow:none}
+  html body .story .repair-track{background:#2E3A5C;box-shadow:inset 0 1px 2px #0008,0 0 0 1px #C8A46A}
+  html body .story .clock{border-left-color:#B89C7466;color:#4A4266}
+  /* round tool buttons from the kit: art carries the icon, label sits on the lower rim */
+  html body .tools{align-items:center}
+  html body .tools>button:not(#playButton){justify-self:center;width:62px;height:63px;min-height:44px;padding:0 0 4px;justify-content:flex-end;border:0;border-image:none;background:var(--ui-tool-undo) center/contain no-repeat;color:#2E3A5C;font-size:12px;font-weight:900;text-shadow:0 0 3px #fff,0 0 6px #fff;filter:drop-shadow(0 3px 4px #0a143073)}
+  html body .tools>button:not(#playButton) .ui-icon,html body .tools>button:not(#playButton)::after{display:none}
+  html body .tools>button#hintButton{width:70px;height:72px;background-image:var(--ui-tool-hint);color:#5A3108;filter:drop-shadow(0 0 10px #FFD27Aa0) drop-shadow(0 3px 4px #0a143073)}
+  html body .tools>button#resetButton{background-image:var(--ui-tool-restart)}
+  html body .tools>button:not(#playButton):disabled{filter:grayscale(.55) brightness(.9) drop-shadow(0 3px 4px #0a143059)}
+  html body.coaching .tools>button#hintButton{width:62px;height:63px;filter:grayscale(.55) brightness(.9) drop-shadow(0 3px 4px #0a143059)}
+}
+
+/* ---------- Watercolor 06 grid (approved page v10): original tiles with 5 random blooms per colour, watercolor motif, painted × ----------
+   Appended override only — board tray, background, text and HUD rules above are untouched. */
+.board .cell::before{inset:1px;border-radius:9%;background-color:transparent;background-image:var(--tile);background-size:100% 100%;background-repeat:no-repeat;box-shadow:none}
+.board .cell.soft::before{background-image:var(--tile);box-shadow:none}
+.board .cell .motif{inset:16%;opacity:.95}
+.board .token img.x-mark-wc{width:62%;height:62%;object-fit:contain;filter:none}
+.board .cell.fresh .token img.x-mark-wc{animation:xPop .22s ease-out both}
+/* × option F (approved 2026-10-19): cocoa hand-drawn strokes, centred; the region motif hides under a × so the mark reads clearly. */
+.board .token svg.x-mark-f{display:block;width:66%;height:66%;overflow:visible;pointer-events:none}
+.board .cell.fresh .token svg.x-mark-f{animation:xPop .22s ease-out both}
+.board .cell.marked .motif{opacity:0}
+.board .cell.hinted::before{box-shadow:inset 0 0 0 3px #FFE27A,inset 0 0 14px #FFD24A}
+.board .cell.conflict::before{box-shadow:inset 0 0 0 3px #E0503A}
+.board .cell.conflict-source::before{box-shadow:inset 0 0 0 3px #F08A5A}
+.board .cell.conflict-hit::before{box-shadow:inset 0 0 0 4px #FF3B2F,inset 0 0 0 6px #FFD0C4,0 0 14px 3px #FF3B2Fcc,inset 0 0 20px #FF5A3Aaa}
+@keyframes xPop{0%{transform:scale(.3) rotate(-20deg);opacity:0}100%{transform:none;opacity:1}}
+
+/* ---------- Watercolor 06 board (approved page v10): snowy paper frame with pine/berries/lantern + cream paper base ----------
+   Replaces the dark-wood tray only. The frame opening (x 122-769, y 130-751 of the 900x852 art) maps onto the board box;
+   the board is shrunk so frame + decorations take about the same space the old tray did. */
+.board{--bw0:min(100%,43dvh,410px);--bs:.86;--bw:min(calc(var(--bw0)*var(--bs)),calc((100vw - 10px)/1.18));position:relative;width:var(--bw);margin:calc(var(--bw)*.19) auto calc(var(--bw)*.14);padding:calc(var(--bw)*.022);border:0;border-radius:6px;background:#FBF4E4;box-shadow:none;overflow:visible}
+.board::after{content:"";position:absolute;left:-18.86%;right:-20.25%;top:-20.93%;bottom:-16.26%;background:url('assets/board-frame-wc.webp') 0 0/100% 100% no-repeat;pointer-events:none;z-index:-1}
+body.coaching .board{--bw0:min(100%,35.5dvh,380px);width:var(--bw)}
+@media(max-height:720px){.board{--bw0:min(100%,39dvh,410px)}body.coaching .board{--bw0:min(100%,33dvh,380px)}}
+@media(max-height:600px){.board{--bw0:min(100%,37dvh,410px)}body.coaching .board{--bw0:min(100%,27dvh,380px)}}
+@media(orientation:landscape) and (max-height:600px){.board{--bw0:min(100%,calc(100dvh - 150px))}body.coaching .board{--bw0:min(100%,calc(100dvh - 220px))}}
+
+/* ---------- Snowy-path world map (replaces the four .map-chapter cards inside the same dialog) ----------
+   Same skin as the old list: gold-rimmed picture like .map-thumb, the old step medals for levels, tag plates for labels.
+   The footer (saved note + story / gallery / resume buttons) is the untouched dialog markup. */
+.map-path-scroll{position:relative;height:min(52dvh,440px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:none;border-radius:12px;box-shadow:0 0 0 2px #E2AC45,0 2px 3px #0000004d;background:#F3EBDD}
+.map-path-scroll::-webkit-scrollbar{display:none}
+.map-path{position:relative;width:100%;aspect-ratio:941/1672;background:#F3EBDD center/100% 100% no-repeat}
+.map-stone{position:absolute;width:40px;height:40px;min-height:0;margin:-20px 0 0 -20px;display:grid;place-items:center;background:var(--ui-round) center/contain no-repeat;color:var(--ink);font:900 14px/1 system-ui,sans-serif;filter:drop-shadow(0 2px 2px #0000005a);z-index:1}
+.map-stone.complete{background-image:var(--ui-step-done)}
+.map-stone.complete span{display:none}
+.map-stone.current{width:48px;height:48px;margin:-24px 0 0 -24px;background-image:var(--ui-step-current);color:#6A3A08;font-size:16px;animation:currentPulse 1.6s ease-in-out infinite;z-index:2}
+.map-stone.complete.current{background-image:var(--ui-step-done)}
+.map-stone:disabled{background-image:var(--ui-step-locked);color:#EFE6D8;opacity:1;filter:drop-shadow(0 2px 2px #0000005a);text-shadow:0 1px 0 #0007}
+.map-home{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;padding:2px 12px 4px;border:0 solid transparent;border-image:var(--ui-tag) 40 fill / 11px stretch;white-space:nowrap;pointer-events:none;z-index:1;filter:drop-shadow(0 2px 2px #0000004d)}
+.map-home b{font-size:13px;line-height:1.2;font-weight:900;color:var(--ink)}
+.map-home small{font-size:10.5px;line-height:1.2;font-weight:900;color:#5A3108}
+.map-home img{position:absolute;left:-6px;top:-8px;width:17px;height:20px;object-fit:contain}
+.map-home.locked{filter:grayscale(.85) brightness(.9) drop-shadow(0 2px 2px #0000004d)}
+/* Current level marker: the game's own mother + daughter portraits, gold-rimmed like the old chapter thumbnails. */
+.map-duo{position:absolute;width:84px;height:58px;margin:-78px 0 0 -42px;pointer-events:none;z-index:3;filter:drop-shadow(0 3px 4px #0000006b)}
+.map-duo i{position:absolute;bottom:10px;border-radius:50%;background:#FFF6E4 center 8%/cover no-repeat;box-shadow:0 0 0 3px #E2AC45}
+.map-duo .m{left:3px;width:50px;height:50px}
+.map-duo .d{right:3px;width:42px;height:42px;z-index:1}
+.map-duo::after{content:"";position:absolute;left:50%;bottom:0;margin-left:-8px;border:9px solid transparent;border-top-color:#E2AC45;border-bottom:0}
+@media(max-height:720px){.map-path-scroll{height:min(46dvh,400px)}.map-stone{width:36px;height:36px;margin:-18px 0 0 -18px;font-size:13px}.map-stone.current{width:44px;height:44px;margin:-22px 0 0 -22px}}
+@media(max-height:600px){.map-path-scroll{height:40dvh}}
+@media(prefers-reduced-motion:reduce){.map-stone.current{animation:none}}
+
+/* ---------- World map as a full-screen page (not a card) ----------
+   The painted path fills the whole game column; the ribbon title + counter + close float on top, the saved note and the
+   story / gallery / resume buttons float at the bottom. All skins (ribbon, tag, buttons, step medals) are the existing ones. */
+#modal[data-kind=map]{--map-top:calc(env(safe-area-inset-top) + 104px);--map-bot:calc(env(safe-area-inset-bottom) + 118px);width:min(100%,480px);max-width:100%;height:100dvh;max-height:100dvh;margin:0 auto;padding:0;border:0;border-image:none;background:#C9B6D6;overflow:hidden;animation:mapPageIn .3s ease-out}
+#modal[data-kind=map]:has(.timer-notice){--map-bot:calc(env(safe-area-inset-bottom) + 150px)}
+@keyframes mapPageIn{0%{opacity:0}100%{opacity:1}}
+#modal[data-kind=map] #modalContent{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto auto auto;gap:0;height:100%;padding:0}
+#modal[data-kind=map] #modalContent>*{grid-column:1;position:relative;z-index:2}
+/* Soft shades behind the floating bars so labels stay readable over the painting. */
+#modal[data-kind=map] #modalContent::before,#modal[data-kind=map] #modalContent::after{content:"";position:absolute;left:0;right:0;z-index:1;pointer-events:none}
+#modal[data-kind=map] #modalContent::before{top:0;height:var(--map-top);background:linear-gradient(#3B284A8c,#3B284A33 60%,#3B284A00)}
+#modal[data-kind=map] #modalContent::after{bottom:0;height:var(--map-bot);background:linear-gradient(#2C1A0B00,#2C1A0B66 45%,#2C1A0Bb3)}
+/* The painting itself is the page edge: no blank band above or below, the bars float straight on the picture. */
+#modal[data-kind=map] #modalContent>.map-path-scroll{grid-row:1/-1;z-index:0;height:100%;padding:0;border-radius:0;box-shadow:none;background:#ABA8CB}
+/* At least screen-tall and ≥960px tall, so stone 1 / stone 20 (12% from the ends) clear the floating bars. Slim phones crop
+   the sides a little; the crop leans left (content sits at x .30–.78) so every stone and home label stays inside. */
+#modal[data-kind=map] .map-path{--mw:max(100%,calc(100dvh * 941 / 1672),calc(960px * 941 / 1672));width:var(--mw);left:50%;transform:translateX(-50%);margin-left:calc(-1 * min(var(--mw) * .04,(var(--mw) - 100%) / 2))}
+#modal[data-kind=map] #modalContent>h2{grid-row:1;justify-self:center;align-self:start;width:min(76%,300px);margin:calc(env(safe-area-inset-top) + 10px) 0 0}
+#modal[data-kind=map] #modalContent>.map-counter{grid-row:2;justify-self:center;margin-top:-8px!important}
+#modal[data-kind=map] #modalContent>.dialog-close{position:absolute;top:calc(env(safe-area-inset-top) + 14px);right:10px;z-index:4}
+#modal[data-kind=map] #modalContent>.timer-notice{grid-row:4;margin-bottom:6px}
+#modal[data-kind=map] #modalContent>.dialog-foot{grid-row:5;margin:0 0 6px;color:#FFF1D6!important;text-shadow:0 1px 2px #000a}
+#modal[data-kind=map] #modalContent>.dialog-actions{grid-row:6;display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:8px;margin:0;padding:0 12px calc(env(safe-area-inset-bottom) + 12px)}
+#modal[data-kind=map] .dialog-actions.row>button{min-width:0;height:50px;padding:7px 6px 0;line-height:1;gap:5px;font-size:14px;white-space:nowrap}
+#modal[data-kind=map] .dialog-actions.row>.primary{height:54px;align-self:center;font-size:16px}
+#modal[data-kind=map] .dialog-actions button img{width:22px;height:22px}
+/* Endless mode adds a fourth button after all 20 repairs: four columns, slightly tighter. */
+#modal[data-kind=map] #modalContent>.dialog-actions:has(#mapEndless){grid-template-columns:1fr 1fr .9fr 1.1fr;gap:6px;padding-left:8px;padding-right:8px}
+#modal[data-kind=map] .dialog-actions:has(#mapEndless)>.secondary{font-size:13px}
+@media(max-width:370px){#modal[data-kind=map] .dialog-actions .secondary img{display:none}#modal[data-kind=map] .dialog-actions.row>button{font-size:13px}}
+@media(max-height:720px){#modal[data-kind=map]{--map-top:calc(env(safe-area-inset-top) + 92px)}#modal[data-kind=map] #modalContent>.map-path-scroll{height:100%}}
+
+/* ---------- Undo / hint / restart: snow-capped pill buttons (picked version 1, same skin as the map page buttons) ----------
+   Replaces the round kit art in the portrait layout; stays inside the old 72px tool row so nothing else moves. */
+@media (orientation:portrait),(min-height:601px){
+  html body .tools>button:not(#playButton){width:min(100%,104px);height:54px;padding:6px 8px 2px;flex-direction:row;justify-content:center;align-items:center;gap:5px;border:0 solid transparent;border-image:var(--ui-btn-cream) 60 fill / 22px stretch;background:none;color:var(--ink);font-size:15px;line-height:1;text-shadow:none;filter:drop-shadow(0 3px 4px #0a143073)}
+  html body .tools>button:not(#playButton) .ui-icon{display:block;width:28px;height:28px;flex:none}
+  html body .tools>button#hintButton{width:min(100%,124px);height:62px;font-size:17px;border-image-source:var(--ui-btn-gold);background:none;color:#5A3108;filter:drop-shadow(0 0 10px #FFD27Aa0) drop-shadow(0 3px 4px #0a143073)}
+  html body .tools>button#hintButton .ui-icon{width:34px;height:34px}
+  html body .tools>button#resetButton{background:none}
+  html body.coaching .tools>button#hintButton{width:min(100%,124px);height:62px}
+}
+
+/* ---------- 宽屏接缝柔化（2026-10-19，接缝排查第 4、5 处）：只在屏宽 ≥520px 生效，手机不变。
+   4：场景画铺到顶部，去掉顶部 8px 冰蓝横条；5：游戏列左右边缘羽化进模糊背景，开局/结算遮罩出现时两侧一起压暗。 ---------- */
+@media(min-width:1000px){html body .game{--gtop:18px}}
+@media(min-width:520px){
+  html body .game::before{box-shadow:none;-webkit-mask-image:linear-gradient(90deg,#0000,#000 36px,#000 calc(100% - 36px),#0000);mask-image:linear-gradient(90deg,#0000,#000 36px,#000 calc(100% - 36px),#0000)}
+  html body .scene-wrap{-webkit-mask-image:linear-gradient(90deg,#0000,#000 28px,#000 calc(100% - 28px),#0000);mask-image:linear-gradient(90deg,#0000,#000 28px,#000 calc(100% - 28px),#0000)}
+  html body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:#1a0c04;opacity:0;transition:opacity .3s}
+  body.intro-open::after,body.banner-on::after{opacity:.62}
+}
+
+/* ---------- 结算卡 / 剧情卡顶部画面接缝（2026-10-19）：去掉奶油色叠层（颜色和羊皮纸对不上，形成一道硬边），
+   改为画面本身底部渐隐、左右轻微羽化，直接透出真实的羊皮纸；深色底也去掉，避免边缘露出暗色竖条。 ---------- */
+#modalContent>.result-hero{background:transparent}
+.result-hero::after{content:none}
+.result-hero .result-room{
+  -webkit-mask-image:linear-gradient(#000 52%,#000000b3 72%,#0000 97%),linear-gradient(90deg,#0000,#000 18px,#000 calc(100% - 18px),#0000);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(#000 52%,#000000b3 72%,#0000 97%),linear-gradient(90deg,#0000,#000 18px,#000 calc(100% - 18px),#0000);
+  mask-composite:intersect}
+
+/* ---------- 地图页小屋名牌 + 顶部进度牌（2026-10-19）：底牌放大，文字在牌面（积雪下方的米色区域）里水平、垂直居中。
+   积雪约占牌子上方 1/4，所以上内边距比下内边距大一些，文字才落在牌面正中。 ---------- */
+#modal[data-kind=map] .map-home{min-width:124px;padding:12px 22px 9px;border-image:var(--ui-tag) 40 fill / 17px stretch;justify-content:center;align-items:center;text-align:center;gap:1px}
+#modal[data-kind=map] .map-home b{font-size:15px;line-height:1.2}
+#modal[data-kind=map] .map-home small{font-size:11.5px;line-height:1.2}
+#modal[data-kind=map] .map-home img{left:-4px;top:-6px;width:19px;height:22px}
+/* 第 2 章“山间石屋”的牌子放大后会被第 8 关的石头压住，整块往上提，落到石屋屋檐上，不再挡关卡。 */
+#modal[data-kind=map] .map-path>.map-home:nth-child(2){transform:translate(-50%,-120%)}
+#modal[data-kind=map] #modalContent>.map-counter{min-width:124px;padding:10px 26px 7px;border-image:var(--ui-tag) 40 fill / 16px stretch;font-size:15px;line-height:1.2;text-align:center;display:flex;justify-content:center;align-items:center}
+
+/* ---------- 地图页（2026-10-19 续）：去掉顶部“20 / 20”进度牌；母女头像放到最上层（盖过标题飘带和上下遮罩）。
+   原来地图画层自成一层（z-index:0 + transform 居中），头像再高也出不了这一层，所以：
+   画层不再单独成层、居中改用 left 计算（位置不变）；名牌和关卡石头压到 0 层，仍在上下遮罩下面，和原来一样；
+   头像提到 3 层，只低于右上角关闭按钮。头像不接收点击，盖住按钮时点击照样穿过去。 ---------- */
+#modal[data-kind=map] #modalContent>.map-counter{display:none}
+#modal[data-kind=map] #modalContent>.map-path-scroll{z-index:auto}
+#modal[data-kind=map] .map-path{transform:none;left:calc(50% - var(--mw) / 2)}
+#modal[data-kind=map] .map-path>.map-home,#modal[data-kind=map] .map-path>.map-stone{z-index:0}
+#modal[data-kind=map] .map-path>.map-duo{z-index:3}
+/* 手机全面屏：屏幕四角是圆的，顶部按钮和底部按钮往中间收一点，避免被圆角/刘海/底部横条切到。 */
+@media (max-width:520px){
+  html body .topbar{top:calc(var(--gtop) + 6px);left:calc(var(--gx) + 12px);right:calc(var(--gx) + 12px)}
+  html body .tools{width:min(calc(100% - 24px),410px);margin-left:auto;margin-right:auto;margin-bottom:6px}
+}

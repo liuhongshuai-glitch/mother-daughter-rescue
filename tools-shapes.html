@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>工具按钮造型 · 截图用</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#22344F}iframe{display:block;width:390px;height:844px;border:0}</style>
+</head>
+<body>
+<iframe id="game"></iframe>
+<script>
+// Fresh screenshot profile: skip the prologue/tutorial so the board and tool row are visible.
+// Only seeds when there is no save at all, so a real player's progress is never touched.
+try{if(!localStorage.getItem('mother-daughter-rescue-v1'))localStorage.setItem('mother-daughter-rescue-v1',JSON.stringify({version:1,index:0,completed:[],tutorialSeen:true,tutorialVersion:5}));}catch{}
+document.getElementById('game').src='/index.html?autostart=1';
+// Screenshot harness: tools-shapes.html?v=1..6 loads the real game and restyles only the
+// undo / hint / restart buttons. Every version stays inside the old 72px-tall row.
+const B='html body .tools>button:not(#playButton)',U='html body .tools>button#undoButton',H='html body .tools>button#hintButton',R='html body .tools>button#resetButton';
+const BASE=`${B}{width:min(100%,104px);height:54px;padding:0 8px 2px;flex-direction:row;justify-content:center;align-items:center;gap:5px;border:0;border-image:none;background:none;font-size:15px;line-height:1;text-shadow:none;filter:drop-shadow(0 3px 4px #0a143073)}
+${B} .ui-icon{display:block;width:28px;height:28px;flex:none}
+${H}{width:min(100%,124px);height:62px;font-size:17px}
+${H} .ui-icon{width:34px;height:34px}`;
+const V={
+  // 1 snow-capped pill, same art as the map page buttons
+  1:`${B}{border:0 solid transparent;border-image:var(--ui-btn-cream) 60 fill / 22px stretch;padding-top:6px;color:var(--ink)}
+     ${H}{border-image-source:var(--ui-btn-gold);color:#5A3108;filter:drop-shadow(0 0 10px #FFD27Aa0) drop-shadow(0 3px 4px #0a143073)}`,
+  // 2 plain horizontal oval, cream with gold rim
+  2:`${B}{border-radius:50%;color:#4A3418;background:radial-gradient(ellipse at 50% 28%,#FFFDF6,#F3E1BC 62%,#DDB980);box-shadow:inset 0 -4px 0 #B8864a55,inset 0 2px 0 #fff,0 0 0 2px #FFF6E3,0 0 0 4px #B98A4E}
+     ${H}{color:#5A3108;background:radial-gradient(ellipse at 50% 28%,#FFF6C8,#FFD36A 60%,#F0A23A);box-shadow:inset 0 -4px 0 #B8600055,inset 0 2px 0 #fff,0 0 0 2px #FFF6E3,0 0 0 4px #C07A20,0 0 14px 4px #FFD27A88}`,
+  // 3 upright egg, icon over label, colour per tool like the old round art
+  3:`${B}{width:76px;height:68px;flex-direction:column;gap:1px;padding:4px 0 6px;font-size:13px;border-radius:50% 50% 50% 50% / 56% 56% 44% 44%;color:#2E3A5C;box-shadow:inset 0 -5px 0 #0000001f,inset 0 3px 0 #ffffffb0,0 0 0 3px #fff}
+     ${B} .ui-icon{width:32px;height:32px}
+     ${U}{background:radial-gradient(ellipse at 50% 25%,#F4F7FF,#C9D5EE 60%,#9AAED6)}
+     ${R}{background:radial-gradient(ellipse at 50% 25%,#FAF5FF,#DCCBF7 60%,#AF95E2)}
+     ${H}{width:84px;height:72px;font-size:14px;color:#5A3108;background:radial-gradient(ellipse at 50% 25%,#FFF8D8,#FFCF6A 60%,#F09A32);box-shadow:inset 0 -5px 0 #0000001f,inset 0 3px 0 #ffffffb0,0 0 0 3px #fff,0 0 16px 4px #FFD27A99}
+     ${H} .ui-icon{width:38px;height:38px}`,
+  // 4 old round art, bigger, label in an oval tag below
+  4:`${B}{width:76px;height:70px;flex-direction:column;justify-content:flex-end;padding:0;background:var(--ui-tool-undo) center 0/58px 58px no-repeat;color:#4A3418;font-size:13px}
+     ${B} .ui-icon{display:none}
+     ${B} span{padding:2px 12px 3px;border-radius:50%;background:#FFF6E3;box-shadow:0 0 0 2px #C8A46A,0 2px 3px #0006}
+     ${H}{width:84px;height:72px;background:var(--ui-tool-hint) center 0/64px 64px no-repeat}
+     ${H} span{background:#FFE08A;color:#5A3108}
+     ${R}{background-image:var(--ui-tool-restart)}`,
+  // 5 oval pill with the round art as a badge on the left
+  5:`${B}{width:min(100%,104px);height:46px;padding:0 10px 0 44px;justify-content:center;border-radius:999px;color:#4A3418;background:var(--ui-tool-undo) -6px 50%/54px 54px no-repeat,linear-gradient(#FFFBF0,#F0DDB4);box-shadow:inset 0 -3px 0 #B8864a44,0 0 0 2px #FFF6E3,0 0 0 4px #B98A4E}
+     ${B} .ui-icon{display:none}
+     ${H}{width:min(100%,124px);height:54px;padding-left:54px;font-size:17px;color:#5A3108;background:var(--ui-tool-hint) -6px 50%/64px 64px no-repeat,linear-gradient(#FFF4C4,#FFC75C);box-shadow:inset 0 -3px 0 #B8600044,0 0 0 2px #FFF6E3,0 0 0 4px #C07A20,0 0 14px 4px #FFD27A88}
+     ${R}{background-image:var(--ui-tool-restart),linear-gradient(#FFFBF0,#F0DDB4)}`,
+  // 6 frosted-ice oval
+  6:`${B}{border-radius:50%;color:#24406A;background:linear-gradient(#FFFFFFE6,#D8ECFFC8);box-shadow:inset 0 2px 0 #fff,inset 0 -4px 6px #8FB6E655,0 0 0 2px #FFFFFFcc,0 0 0 4px #8FB6E6aa;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+     ${H}{color:#5A3108;background:linear-gradient(#FFF9E0F0,#FFD98AE0);box-shadow:inset 0 2px 0 #fff,inset 0 -4px 6px #E8A23C66,0 0 0 2px #FFFFFFcc,0 0 0 4px #F0B04Acc,0 0 16px 4px #FFD27A99}`,
+};
+const v=new URLSearchParams(location.search).get('v')||'0';
+const f=document.getElementById('game');
+function inject(){
+  try{
+    const d=f.contentDocument;if(!d||!d.head)return;
+    let st=d.getElementById('toolShape');
+    if(!st){st=d.createElement('style');st.id='toolShape';d.head.appendChild(st);}
+    const css=v==='0'?'':BASE+V[v];
+    if(st.textContent!==css)st.textContent=css;
+  }catch{}
+}
+f.addEventListener('load',inject);setInterval(inject,200);
+</script>
+</body>
+</html>

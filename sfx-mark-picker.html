@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>点 × 音效试听 · 母女救援</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.5 system-ui,"Microsoft YaHei",sans-serif;color:#2b2540;background:#ECE8F4}
+  header{padding:18px 24px 6px;max-width:900px}
+  h1{margin:0;font-size:20px}
+  header p{margin:4px 0 0;color:#6a6385}
+  main{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:16px 24px 40px;max-width:1000px}
+  .card{background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 2px 8px #2b25401f;outline:4px solid transparent;outline-offset:2px;display:flex;flex-direction:column;gap:8px}
+  .card.picked{outline-color:#7B5CF0}
+  .card.old{background:#F6F3EC}
+  .card b{font-size:16px}
+  .card small{color:#6a6385}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  button{font:700 13px system-ui,"Microsoft YaHei";border:0;border-radius:10px;padding:8px 14px;cursor:pointer}
+  .play{background:#FFE9B8;color:#5A3108}
+  .rapid{background:#E4EEFF;color:#2E3A5C}
+  .pick{background:#EEE8FF;color:#5b3fd0}
+  .card.picked .pick{background:#7B5CF0;color:#fff}
+  .len{display:inline-block;padding:1px 8px;border-radius:8px;background:#F0EDF8;color:#4a4266;font-size:12px;font-weight:700}
+  .bar{display:flex;align-items:center;gap:10px;padding:6px 24px;color:#4a4266}
+</style>
+</head>
+<body>
+<header>
+  <h1>点 × 音效试听</h1>
+  <p>每版都按游戏里的音量播放。“播放”听一次；“连点 4 下”模拟拖动连续排除时的效果。选好后点“选这版”，告诉我编号就行。</p>
+</header>
+<div class="bar"><label>试听音量 <input id="vol" type="range" min="0.2" max="1" step="0.05" value="0.6"></label></div>
+<main id="list"></main>
+<script>
+const V=[
+  {id:'0',file:'assets/scribble.ogg',vol:.4,len:'1.75 秒',name:'原来的',desc:'铅笔沙沙声，太长，做对比用',old:true},
+  {id:'1',file:'assets/sfx-preview/mark-1.ogg',vol:.45,len:'0.32 秒',name:'1 · 短铅笔划',desc:'原来的铅笔声只留开头一笔，尾巴淡出'},
+  {id:'2',file:'assets/sfx-preview/mark-2.ogg',vol:.45,len:'0.18 秒',name:'2 · 更短铅笔划',desc:'同一种铅笔声，再短一半，干脆'},
+  {id:'3',file:'assets/sfx-preview/mark-3.ogg',vol:.4,len:'0.26 秒',name:'3 · 重一点的一笔',desc:'取原声里最清楚的一笔，更有“画了一下”的感觉'},
+  {id:'4',file:'assets/sfx-preview/mark-4.ogg',vol:.35,len:'0.12 秒',name:'4 · 轻点',desc:'游戏里点击声的开头，很轻的“嗒”'},
+  {id:'5',file:'assets/sfx-preview/mark-5.ogg',vol:.3,len:'0.16 秒',name:'5 · 木头轻敲',desc:'像轻敲一下木头，清脆'},
+  {id:'6',file:'assets/sfx-preview/mark-6.ogg',vol:.7,len:'0.16 秒',name:'6 · 唰唰两下',desc:'两下很快的划痕，像画 × 的两笔'},
+  {id:'7',file:'assets/sfx-preview/mark-7.ogg',vol:.7,len:'0.09 秒',name:'7 · 柔和小点',desc:'一个软软的小音加一点沙声，最短最不打扰'},
+];
+const list=document.getElementById('list'),vol=document.getElementById('vol');
+const cache={};
+function play(v){const a=new Audio(v.file);a.volume=Math.min(1,v.vol*vol.value/0.6);a.play();}
+for(const v of V){
+  const c=document.createElement('div');c.className='card'+(v.old?' old':'');
+  c.innerHTML=`<b>${v.name}</b><span><span class="len">${v.len}</span></span><small>${v.desc}</small><div class="row"><button class="play">▶ 播放</button><button class="rapid">连点 4 下</button>${v.old?'':'<button class="pick">选这版</button>'}</div>`;
+  c.querySelector('.play').onclick=()=>play(v);
+  c.querySelector('.rapid').onclick=()=>{for(let i=0;i<4;i++)setTimeout(()=>play(v),i*140);};
+  const p=c.querySelector('.pick');
+  if(p)p.onclick=()=>{document.querySelectorAll('.card').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');p.textContent='已选 '+v.id;};
+  list.appendChild(c);
+}
+</script>
+</body>
+</html>

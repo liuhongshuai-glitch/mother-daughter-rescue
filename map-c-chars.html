@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>C · 手绘水彩 — 母女形象统一 · 母女救援</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font:14px/1.5 system-ui,"Microsoft YaHei",sans-serif;color:#2b2540;background:#ECE8F4}
+  header{padding:18px 24px 4px}
+  h1{margin:0;font-size:20px}
+  header p{margin:4px 0 0;color:#6a6385}
+  .bar{display:flex;flex-wrap:wrap;gap:18px;align-items:center;padding:10px 24px;margin:8px 24px 0;border-radius:14px;background:#fff;box-shadow:0 2px 8px #2b25401f}
+  .bar label{display:flex;align-items:center;gap:8px;font-weight:700}
+  .bar input[type=range]{width:180px}
+  .bar output{min-width:44px;font-variant-numeric:tabular-nums;color:#7B5CF0}
+  .ref{display:flex;gap:6px;align-items:center;color:#6a6385;font-size:12.5px}
+  .ref img{width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid #FFE7A8;background:#fff}
+  main{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;padding:20px 24px 40px}
+  figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:10px;width:390px}
+  .phone{width:390px;height:780px;border-radius:36px;padding:12px;background:#1d1a26;box-shadow:0 18px 40px #2b254055;outline:4px solid transparent;outline-offset:3px}
+  figure.picked .phone{outline-color:#7B5CF0}
+  .screen{position:relative;width:100%;height:100%;border-radius:26px;overflow:hidden;background:#F3EBDD}
+  .scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+  .scroll::-webkit-scrollbar{display:none}
+  .map{position:relative;width:100%;background-repeat:no-repeat}
+  .map svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .node{position:absolute;width:38px;height:38px;margin:-19px 0 0 -19px;border:0;border-radius:50%;display:grid;place-items:center;font:900 14px/1 system-ui;color:#5A3108;
+    background:url(assets/ui-step-done.webp) center/contain no-repeat;filter:drop-shadow(0 3px 3px #0008);cursor:pointer}
+  .node.locked{background-image:url(assets/ui-step-locked.webp);color:#EFE6D8;text-shadow:0 1px 0 #0007}
+  .node.current{background-image:url(assets/ui-step-current.webp);color:#6A3A08;width:54px;height:54px;margin:-27px 0 0 -27px;font-size:18px;animation:pulse 1.6s ease-in-out infinite}
+  .node.done::after{content:"✓";color:#fff;font-size:18px;text-shadow:0 1px 2px #6A3A08}
+  .node.done span{display:none}
+  .home{position:absolute;transform:translate(-50%,-50%);padding:3px 12px 5px;border-radius:12px;background:#FFF6E3ee;box-shadow:0 2px 6px #0006;font-weight:900;font-size:13px;color:#5A3108;white-space:nowrap}
+  .home small{display:block;font-size:10.5px;font-weight:700;color:#8a6a3a;text-align:center}
+  .home.locked{background:#3a3f55dd;color:#e8e2f0}.home.locked small{color:#c9c2da}
+  .home.locked::before{content:"";display:inline-block;width:12px;height:14px;margin-right:4px;vertical-align:-2px;background:url(assets/ui-icon-lock.webp) center/contain no-repeat}
+  /* Old marker: a chapter-house thumbnail. */
+  .pair{position:absolute;width:64px;height:64px;margin:-58px 0 0 -32px;border-radius:50%;border:3px solid #FFE7A8;background:#fff center 18%/cover no-repeat;box-shadow:0 3px 8px #0009;transition:left .6s,top .6s}
+  .pair::after{content:"";position:absolute;left:50%;bottom:-10px;margin-left:-8px;border:8px solid transparent;border-top-color:#FFE7A8;border-bottom:0}
+  /* New marker: the game's own mother + daughter portraits, side by side, as one token. */
+  .duo{position:absolute;width:92px;height:62px;margin:-74px 0 0 -46px;transition:left .6s,top .6s;filter:drop-shadow(0 3px 5px #0008)}
+  .duo i{position:absolute;bottom:10px;border-radius:50%;border:3px solid #FFE7A8;background:#FFF6E3 center 8%/cover no-repeat}
+  .duo .m{left:2px;width:56px;height:56px;background-image:url(assets/avatar-mother.webp);z-index:1}
+  .duo .d{right:2px;width:46px;height:46px;background-image:url(assets/avatar-daughter.webp);z-index:2}
+  .duo::after{content:"";position:absolute;left:50%;bottom:0;margin-left:-8px;border:9px solid transparent;border-top-color:#FFE7A8;border-bottom:0}
+  .hud{position:absolute;left:0;right:0;top:0;z-index:3;display:flex;align-items:center;gap:8px;padding:12px 12px 26px;background:linear-gradient(#0a1224cc,#0a122400)}
+  .hud h2{margin:0;flex:1;color:#fff;font-size:18px;text-shadow:0 2px 3px #0009}
+  .hud .count{padding:2px 12px 4px;border-radius:12px;background:#FFF6E3;color:#5A3108;font-weight:900;font-size:13px}
+  .hud .x{width:34px;height:34px;border-radius:50%;background:#FFF6E3 url(assets/ui-icon-close.webp) center/60% no-repeat;box-shadow:0 2px 4px #0006}
+  .foot{position:absolute;left:0;right:0;bottom:0;z-index:3;display:flex;gap:10px;justify-content:center;padding:28px 12px 14px;background:linear-gradient(#0a122400,#0a1224cc)}
+  .foot span{padding:8px 16px;border-radius:14px;background:#FFF6E3;color:#5A3108;font-weight:900;font-size:13px;box-shadow:0 2px 4px #0006}
+  .foot span.go{background:#7CC04A;color:#fff;text-shadow:0 1px 0 #2a5a10}
+  figcaption{text-align:center}
+  figcaption b{display:block;font-size:16px}
+  figcaption small{display:block;color:#6a6385;font-size:12.5px;max-width:370px}
+  .pick{margin-top:4px;padding:6px 16px;border:0;border-radius:10px;background:#EEE8FF;color:#5b3fd0;font:700 13px system-ui,"Microsoft YaHei";cursor:pointer}
+  figure.picked .pick{background:#7B5CF0;color:#fff}
+  .missing{position:absolute;inset:0;display:grid;place-items:center;color:#8a6a3a;font-size:14px;text-align:center;padding:20px;background:#F3EBDDee;z-index:2}
+  @keyframes pulse{50%{filter:drop-shadow(0 0 10px #FFD24A) brightness(1.12)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>C · 手绘水彩 —— 母女形象和游戏统一</h1>
+  <p>左边是改前；中间和右边是两种统一方式。每台手机都能上下滚动、点关卡石模拟进度。打开时会自动滚到最底部，方便直接看画上的母女。</p>
+</header>
+<div class="bar">
+  <label>模拟进度：已完成 <input id="prog" type="range" min="0" max="20" step="1" value="0"><output id="progOut">0</output> 关</label>
+  <label><input id="path" type="checkbox" checked> 显示路线虚线</label>
+  <span class="ref">游戏里的形象：<img src="assets/avatar-mother.webp" alt="妈妈"><img src="assets/avatar-daughter.webp" alt="女儿"></span>
+  <span id="picked" style="color:#7B5CF0;font-weight:700"></span>
+</div>
+<main id="main"></main>
+<script>
+const HOMES=[['雪夜的阁楼','第 1 章'],['山间石屋','第 2 章'],['湖边渔屋','第 3 章'],['两间农舍','第 4 章']];
+// Path + home label points for map C (x,y as 0..1 of the image, bottom→top). All three share them:
+// the edited images keep C's composition.
+const PTS=[[.46,.88],[.50,.81],[.53,.74],[.60,.68],[.66,.63],[.72,.58],[.70,.535],[.60,.50],[.56,.45],[.62,.41],[.70,.37],[.76,.33],[.72,.29],[.66,.255],[.72,.22],[.78,.19],[.72,.165],[.64,.15],[.58,.135],[.66,.12]];
+const HOMEPTS=[[.30,.66],[.78,.525],[.36,.25],[.42,.12]];
+const VERSIONS=[
+  {id:'c0',name:'改前 · 原版 C',desc:'地图上画的母女是“通用”形象：发型、衣服和游戏不一致；当前关的标记还是小屋缩略图。',img:'assets/map-v3.png',marker:'pair'},
+  {id:'c1',name:'方案一 · 重绘地图上的母女',desc:'只重画地图底部的母女：妈妈红色长卷发＋带补丁的粉 T 恤，女儿金色卷发＋粉毛衣、抱着小兔子，和游戏一致。当前关标记换成游戏里的母女头像。',img:'assets/map-v3-chars.png',marker:'duo'},
+  {id:'c2',name:'方案二 · 母女做成“棋子”',desc:'地图上不画人，只用游戏里的母女头像当棋子，站在当前关卡上，每过一关就沿小路往上走一格。形象永远和游戏一模一样。',img:'assets/map-v3-empty.png',marker:'duo'},
+];
+const $=id=>document.getElementById(id);
+let done=0;
+function chapterOf(i){return Math.floor(i/5);}
+function build(v){
+  const fig=document.createElement('figure');fig.id='fig-'+v.id;
+  fig.innerHTML=`<div class="phone"><div class="screen"><div class="scroll"><div class="map"></div></div>
+    <div class="hud"><h2>小屋地图</h2><span class="count"></span><span class="x"></span></div>
+    <div class="foot"><span>我们的故事</span><span>回忆画廊</span><span class="go">继续</span></div></div></div>
+    <figcaption><b>${v.name}</b><small>${v.desc}</small>${v.id==='c0'?'':'<button class="pick" type="button">选这个</button>'}</figcaption>`;
+  $('main').appendChild(fig);
+  const pk=fig.querySelector('.pick');
+  if(pk)pk.onclick=()=>{document.querySelectorAll('figure').forEach(f=>f.classList.toggle('picked',f===fig));$('picked').textContent='已选：'+v.name+'（告诉我这个名字即可）';};
+  const im=new Image();
+  im.onload=()=>{v.w=im.naturalWidth;v.h=im.naturalHeight;fig.querySelector('.missing')?.remove();draw(v,true);};
+  im.onerror=()=>{fig.querySelector('.screen').insertAdjacentHTML('beforeend','<div class="missing">这张图还在生成，稍后刷新页面</div>');};
+  im.src=v.img+'?t='+Date.now();
+}
+function draw(v,first){
+  const fig=$('fig-'+v.id);if(!v.w)return;
+  const scroll=fig.querySelector('.scroll'),map=fig.querySelector('.map');
+  // Cover-fit without stretching; the map is 1.2x the screen so it scrolls a little.
+  const W=scroll.clientWidth,H=Math.max(scroll.clientHeight*1.2,W*v.h/v.w);
+  const s=Math.max(W/v.w,H/v.h),iw=v.w*s,ox=(iw-W)/2;
+  map.style.height=H+'px';map.style.backgroundImage=`url(${v.img})`;
+  map.style.backgroundSize=`${iw}px ${v.h*s}px`;map.style.backgroundPosition=`${-ox}px 0`;
+  const P=([x,y])=>[x*iw-ox,y*v.h*s];
+  // Re-space the 20 stones evenly along the traced path.
+  const raw=PTS.map(P),seg=[0];
+  for(let i=1;i<raw.length;i++)seg.push(seg[i-1]+Math.hypot(raw[i][0]-raw[i-1][0],raw[i][1]-raw[i-1][1]));
+  const L=seg[seg.length-1],even=Array.from({length:20},(_,k)=>{
+    const t=L*k/19;let j=1;while(j<seg.length-1&&seg[j]<t)j++;
+    const f=(t-seg[j-1])/((seg[j]-seg[j-1])||1);
+    return [raw[j-1][0]+(raw[j][0]-raw[j-1][0])*f,raw[j-1][1]+(raw[j][1]-raw[j-1][1])*f];});
+  let html='';
+  if($('path').checked){
+    const d=raw.map((p,i)=>(i?'L':'M')+p.map(n=>n.toFixed(1)).join(' ')).join(' ');
+    html+=`<svg viewBox="0 0 ${W} ${H}"><path d="${d}" fill="none" stroke="#FFF6E3" stroke-width="4" stroke-dasharray="2 9" stroke-linecap="round" opacity=".9"/></svg>`;
+  }
+  const cur=Math.min(19,done);
+  HOMEPTS.forEach((p,c)=>{const [x,y]=P(p),locked=c*5>cur;html+=`<div class="home ${locked?'locked':''}" style="left:${x}px;top:${y}px">${HOMES[c][0]}<small>${HOMES[c][1]}${!locked&&[0,1,2,3,4].every(k=>c*5+k<done)?' · 已完成':''}</small></div>`;});
+  even.forEach(([x,y],i)=>{const cls=i<done?'done':i===cur&&done<20?'current':i>cur?'locked':'';
+    html+=`<button class="node ${cls}" style="left:${x}px;top:${y}px" data-i="${i}" title="第 ${i+1} 关"><span>${i+1}</span></button>`;});
+  const [mx,my]=even[cur];
+  html+=v.marker==='duo'
+    ?`<div class="duo" style="left:${mx}px;top:${my}px"><i class="m"></i><i class="d"></i></div>`
+    :`<div class="pair" style="left:${mx}px;top:${my}px;background-image:url(assets/ui-chapter-${chapterOf(cur)}.webp)"></div>`;
+  map.innerHTML=html;
+  fig.querySelector('.count').textContent=`${done} / 20`;
+  map.querySelectorAll('.node').forEach(b=>b.onclick=()=>{done=+b.dataset.i;$('prog').value=done;sync();});
+  scroll.scrollTo({top:first?H:Math.max(0,my-scroll.clientHeight*.6),behavior:first?'auto':'smooth'});
+}
+function sync(){$('progOut').textContent=done;VERSIONS.forEach(v=>draw(v,false));}
+$('prog').oninput=e=>{done=+e.target.value;sync();};
+$('path').onchange=sync;
+VERSIONS.forEach(build);
+</script>
+</body>
+</html>

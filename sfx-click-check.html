@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>按钮点击声检查 · 母女救援</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.6 system-ui,"Microsoft YaHei",sans-serif;color:#2b2540;background:#ECE8F4}
+header{padding:18px 24px 6px;max-width:960px}
+h1{margin:0;font-size:20px}
+header p{margin:4px 0 0;color:#6a6385}
+main{max-width:960px;padding:12px 24px 40px;display:flex;flex-direction:column;gap:14px}
+.card{background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 2px 8px #2b25401f}
+.card b{font-size:16px}
+.card small{display:block;color:#6a6385;margin-top:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+button{font:700 13px system-ui,"Microsoft YaHei";border:0;border-radius:10px;padding:8px 14px;cursor:pointer;background:#FFE9B8;color:#5A3108}
+button.alt{background:#E4EEFF;color:#2E3A5C}
+.tag{display:inline-block;padding:1px 8px;border-radius:8px;font-size:12px;font-weight:700;margin-left:6px}
+.bad{background:#FDE7E4;color:#b0352a}
+.ok{background:#E4F6E0;color:#2f7a22}
+table{border-collapse:collapse;width:100%;margin-top:8px;font-size:13px}
+td,th{border-bottom:1px solid #eee;padding:6px 8px;text-align:left;vertical-align:top}
+th{color:#6a6385;font-weight:700}
+.time{font-variant-numeric:tabular-nums;color:#7B5CF0;font-weight:700;white-space:nowrap}
+.timeline{position:relative;height:46px;margin-top:10px;background:#F6F3FC;border-radius:10px}
+.mark{position:absolute;top:6px;width:6px;height:34px;border-radius:3px}
+.mark span{position:absolute;top:36px;left:-20px;width:60px;font-size:11px;text-align:center;color:#6a6385}
+.axis{position:absolute;left:8px;right:8px;bottom:-18px;display:flex;justify-content:space-between;font-size:11px;color:#9a94b0}
+</style>
+</head>
+<body>
+<header>
+<h1>按钮点击声检查</h1>
+<p>游戏里每次点普通按钮（地图、故事、继续、关闭、设置等），一共会响 <b>3 次</b>。下面按时间顺序列出来，每一项都能单独播放。“撤销”和“提示”有自己的音效，不在这里面。</p>
+</header>
+<main>
+
+<div class="card">
+<b>一次点击的时间线</b>
+<small>横轴是点击后的秒数。</small>
+<div class="timeline" id="tl"></div>
+<div style="height:18px"></div>
+<div class="row">
+<button id="playAll">▶ 播放游戏现在的完整点击（3 声）</button>
+</div>
+</div>
+
+<div class="card">
+<b>① 点击声开头</b><span class="tag ok">应该保留</span>
+<small>来自 <code>assets/tap.ogg</code> 的前 0.09 秒，在 <code>app.js</code> 第 1118 行播放。这是想要的那声“嗒”。</small>
+<div class="row"><button data-play="head">▶ 播放</button></div>
+</div>
+
+<div class="card">
+<b>② 两个电子音“嘀-嘟”</b><span class="tag bad">多余的第 2 声</span>
+<small>不是音频文件，是 <code>feedback.js</code> 用代码合成的两个音（相隔 0.065 秒），在 <code>app.js</code> 第 1119 行和点击声同时触发。按钮不同，音调也不同：</small>
+<table>
+<tr><th>哪些按钮</th><th>合成音</th><th></th></tr>
+<tr><td>大多数按钮（地图、故事、继续、下一项修复……）</td><td>open：上扬两音</td><td><button class="alt" data-synth="open">▶ 播放</button></td></tr>
+<tr><td>关闭、取消、继续游戏（resume）</td><td>back：下降两音</td><td><button class="alt" data-synth="back">▶ 播放</button></td></tr>
+<tr><td>重来、重试、重播</td><td>reset：低沉下降两音</td><td><button class="alt" data-synth="reset">▶ 播放</button></td></tr>
+</table>
+</div>
+
+<div class="card">
+<b>③ 1.87 秒后的又一下“嗒”</b><span class="tag bad">多余的第 3 声</span>
+<small><code>assets/tap.ogg</code> 这个文件总长 2.0 秒：开头一下，中间 1.8 秒静音，<span class="time">1.87 秒</span>处又藏着一下，而且比开头那下还响（峰值 -1.4 dB，开头是 -2.8 dB）。所以每次点完按钮，过快 2 秒会再响一下。</small>
+<div class="row"><button data-play="tail">▶ 播放这一下</button><button class="alt" data-play="full">▶ 播放整个 tap.ogg（2 秒）</button></div>
+</div>
+
+<div class="card">
+<b>只有部分按钮才有的额外声音</b><span class="tag ok">正常，跟这次问题无关</span>
+<table>
+<tr><th>按钮</th><th>额外声音</th></tr>
+<tr><td>从地图选关、重玩、前往新小屋（开始一关）</td><td>开局叮咚 <code>level-start.ogg</code></td></tr>
+<tr><td>过关后的按钮</td><td>不额外响；过关音效是过关本身触发的，不是按钮</td></tr>
+<tr><td>切换语言</td><td>只有点击声 ①，加上一个 language 合成音</td></tr>
+</table>
+</div>
+
+<div class="card">
+<b>建议的修法</b>
+<small>1. 把 <code>tap.ogg</code> 剪成只有开头 0.12 秒，去掉第 ③ 声。<br>2. 普通按钮不再播合成音，去掉第 ② 声，只留 ①。<br>两处都改完，点按钮就只有一声“嗒”。下面可以先听听改完后的效果。</small>
+<div class="row"><button id="playFixed">▶ 改完后的点击（只有 1 声）</button></div>
+</div>
+
+</main>
+<script>
+const files={head:'assets/sfx-preview/tap-head.ogg',tail:'assets/sfx-preview/tap-tail.ogg',full:'assets/tap.ogg'};
+// Same tone table and output chain as feedback.js: [Hz, start s, duration s, end Hz, peak]
+const tones={
+  open:[[330,0,.09,392,.10],[494,.065,.11,494,.08]],
+  back:[[392,0,.09,330,.10],[247,.065,.11,247,.08]],
+  reset:[[330,0,.10,280,.09],[220,.09,.14,196,.09]]
+};
+let ctx,out;
+function synth(kind){
+  if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();out=ctx.createGain();out.gain.value=.32;const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=1800;f.Q.value=.5;out.connect(f);f.connect(ctx.destination);}
+  ctx.resume();const now=ctx.currentTime;
+  for(const [fr,d,dur,end,peak] of tones[kind]){
+    const o=ctx.createOscillator(),g=ctx.createGain(),s=now+d;
+    o.type='sine';o.frequency.setValueAtTime(fr,s);o.frequency.exponentialRampToValueAtTime(end,s+dur);
+    g.gain.setValueAtTime(0,now);g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(peak,s+.009);
+    g.gain.exponentialRampToValueAtTime(.0001,s+dur);g.gain.linearRampToValueAtTime(0,s+dur+.008);
+    o.connect(g);g.connect(out);o.start(s);o.stop(s+dur+.012);
+  }
+}
+function play(key,rate=1){const a=new Audio(files[key]);a.volume=.5;a.playbackRate=rate;a.play();}
+document.querySelectorAll('[data-play]').forEach(b=>b.onclick=()=>play(b.dataset.play));
+document.querySelectorAll('[data-synth]').forEach(b=>b.onclick=()=>synth(b.dataset.synth));
+// Exactly what the game does on a normal button: full tap.ogg at rate 1.05 + the 'open' synth.
+document.getElementById('playAll').onclick=()=>{play('full',1.05);synth('open');};
+document.getElementById('playFixed').onclick=()=>play('head',1.05);
+// Timeline (2.0 s wide, matching the axis labels)
+const tl=document.getElementById('tl'),W=2.0;
+[[0,'#E8A23C','① 嗒'],[.065,'#7B5CF0','② 嘀嘟'],[1.87/1.05,'#b0352a','③ 嗒']].forEach(([t,c,l],i)=>{
+  const m=document.createElement('div');m.className='mark';m.style.left=`calc(8px + (100% - 16px) * ${t/W} + ${i===1?8:0}px)`;m.style.background=c;m.innerHTML=`<span>${l}</span>`;tl.appendChild(m);
+});
+const ax=document.createElement('div');ax.className='axis';ax.innerHTML='<span>0 秒</span><span>0.5</span><span>1.0</span><span>1.5</span><span>2.0</span>';tl.appendChild(ax);
+</script>
+</body>
+</html>

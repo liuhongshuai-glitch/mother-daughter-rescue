@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>暖一点 · 手机预览</title>
+<style>
+  :root{--sw:390px;--sh:844px;--bezel:12px;--s:1}
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{display:grid;place-items:center;overflow:hidden;background:radial-gradient(ellipse 70% 60% at 50% 45%,#2a2f3a 0,#16191f 55%,#0d0f13 100%);font:600 15px/1 -apple-system,"SF Pro Text","Segoe UI","Microsoft YaHei UI",sans-serif}
+  .stage{width:calc((var(--sw) + 2 * var(--bezel) + 8px) * var(--s));height:calc((var(--sh) + 2 * var(--bezel) + 8px) * var(--s))}
+  /* Phone body: graphite rail + black bezel, after the reference mock-up */
+  .phone{position:relative;width:calc(var(--sw) + 2 * var(--bezel) + 8px);height:calc(var(--sh) + 2 * var(--bezel) + 8px);padding:4px;border-radius:64px;transform:scale(var(--s));transform-origin:0 0;
+    background:linear-gradient(145deg,#5b606a 0,#2b2e34 18%,#1c1e22 50%,#2b2e34 82%,#5b606a 100%);
+    box-shadow:0 0 0 1px #0008,inset 0 0 0 1px #ffffff2e,0 40px 80px -20px #000c,0 18px 36px -12px #000a}
+  .bezel{position:relative;width:100%;height:100%;padding:var(--bezel);border-radius:60px;background:#050506;box-shadow:inset 0 0 0 1.5px #2c2f35}
+  .screen{position:relative;width:var(--sw);height:var(--sh);border-radius:48px;overflow:hidden;background:#1a1008;isolation:isolate}
+  .screen iframe{position:absolute;left:0;right:0;top:47px;bottom:0;width:100%;height:calc(100% - 47px);border:0;display:block;background:#4A2E17}
+  /* Side keys */
+  .key{position:absolute;width:4px;border-radius:2px;background:linear-gradient(90deg,#1b1d21,#4b4f57 60%,#2a2c31)}
+  .key.l{left:-3px}.key.r{right:-3px;background:linear-gradient(270deg,#1b1d21,#4b4f57 60%,#2a2c31)}
+  .k1{top:150px;height:30px}.k2{top:205px;height:62px}.k3{top:282px;height:62px}.k4{top:230px;height:96px}
+  /* Status bar + dynamic island */
+  .status{position:absolute;z-index:3;top:0;left:0;right:0;height:47px;display:flex;align-items:center;justify-content:space-between;padding:6px 30px 0 46px;color:#fff;font-size:16px;letter-spacing:.2px;pointer-events:none;background:linear-gradient(#120b05,#1a1008)}
+  .status .icons{display:flex;align-items:center;gap:6px}
+  .island{position:absolute;z-index:4;top:11px;left:50%;width:122px;height:35px;margin-left:-61px;border-radius:20px;background:#000;box-shadow:inset 0 0 0 1px #111}
+  .island::after{content:"";position:absolute;right:20px;top:11px;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#2b3b5c 0,#0b1020 55%,#000 70%)}
+  .home{position:absolute;z-index:3;left:50%;bottom:8px;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:#ffffffd9;box-shadow:0 0 2px #0006;pointer-events:none}
+  /* Glass glare on the bezel edge */
+  .phone::after{content:"";position:absolute;inset:4px;border-radius:60px;pointer-events:none;background:linear-gradient(120deg,#ffffff14 0,#ffffff00 22%,#ffffff00 78%,#ffffff0d 100%)}
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="phone">
+      <i class="key l k1"></i><i class="key l k2"></i><i class="key l k3"></i><i class="key r k4"></i>
+      <div class="bezel">
+        <div class="screen">
+          <div class="status">
+            <span id="clock">15:15</span>
+            <span class="icons" aria-hidden="true">
+              <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#fff"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#fff"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#fff"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#fff"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 11.5 5.6 8.9a3.4 3.4 0 0 1 4.8 0z" fill="#fff"/><path d="M3.4 6.7a6.6 6.6 0 0 1 9.2 0l-1.3 1.4a4.7 4.7 0 0 0-6.6 0z" fill="#fff"/><path d="M1.1 4.3a9.9 9.9 0 0 1 13.8 0l-1.3 1.4a8 8 0 0 0-11.2 0z" fill="#fff"/></svg>
+              <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="#fff" stroke-opacity=".45"/><rect x="2" y="2" width="20" height="9" rx="2" fill="#fff"/><path d="M25 4.5v4a2 2 0 0 0 0-4z" fill="#fff" fill-opacity=".45"/></svg>
+            </span>
+          </div>
+          <div class="island"></div>
+          <iframe id="game" title="暖一点 · 母女救援" allow="autoplay; fullscreen"></iframe>
+          <div class="home"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+<script>
+  // Same query string as this page (e.g. ?autostart=1) is passed through to the game.
+  document.getElementById('game').src = './index.html' + location.search;
+  const fit = () => {
+    const w = 390 + 24 + 8, h = 844 + 24 + 8, m = 24;
+    document.documentElement.style.setProperty('--s', Math.min(1, (innerWidth - m * 2) / w, (innerHeight - m * 2) / h).toFixed(4));
+  };
+  addEventListener('resize', fit); fit();
+  const tick = () => { const d = new Date(); document.getElementById('clock').textContent = d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  tick(); setInterval(tick, 15000);
+</script>
+</body>
+</html>

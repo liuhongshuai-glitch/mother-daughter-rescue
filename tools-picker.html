@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>撤销 / 提示 / 重来 图标放大预览 · 母女救援</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font:14px/1.5 system-ui,"Microsoft YaHei",sans-serif;color:#2b2540;background:#ECE8F4}
+  header{padding:18px 24px 4px}
+  h1{margin:0;font-size:20px}
+  header p{margin:4px 0 0;color:#6a6385}
+  .bar{display:flex;flex-wrap:wrap;gap:18px;align-items:center;padding:10px 24px;margin:8px 24px 0;border-radius:14px;background:#fff;box-shadow:0 2px 8px #2b25401f}
+  .bar label{display:flex;align-items:center;gap:8px;font-weight:700}
+  .bar input[type=range]{width:160px}
+  .bar output{min-width:44px;font-variant-numeric:tabular-nums;color:#7B5CF0}
+  .bar select{font:inherit;padding:4px 10px;border-radius:8px;border:1px solid #cfc8e6;background:#F6F3FF}
+  main{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;padding:20px 24px 40px}
+  figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .phone{border-radius:36px;padding:12px;background:#1d1a26;box-shadow:0 18px 40px #2b254055;outline:4px solid transparent;outline-offset:3px}
+  figure.picked .phone{outline-color:#7B5CF0}
+  .phone iframe{display:block;border:0;border-radius:26px;background:#22344F}
+  figcaption{text-align:center;max-width:390px}
+  figcaption b{display:block;font-size:16px}
+  figcaption small{display:block;color:#6a6385;font-size:12.5px}
+  figcaption .fit{display:inline-block;margin-top:4px;padding:1px 10px;border-radius:10px;font-size:12px;font-weight:700;background:#E4F6E0;color:#2f7a22}
+  figcaption .fit.bad{background:#FDE7E4;color:#b0352a}
+  .pick{margin-top:4px;padding:6px 16px;border:0;border-radius:10px;background:#EEE8FF;color:#5b3fd0;font:700 13px system-ui,"Microsoft YaHei";cursor:pointer}
+  figure.picked .pick{background:#7B5CF0;color:#fff}
+</style>
+</head>
+<body>
+<header>
+  <h1>撤销 / 提示 / 重来 —— 图标放大几版</h1>
+  <p>按钮占的位置和原来一模一样，只把按钮本身（图标 + 字）在原地放大，棋盘、按钮间距和其他界面都不会被挤动。每台手机下面会显示放大后有没有碰到上面的棋盘或超出屏幕。看中哪版点“选这版”告诉我。</p>
+</header>
+<div class="bar">
+  <label>屏幕 <select id="size"><option value="390x780" selected>手机 390×780</option><option value="375x667">小手机 375×667</option><option value="430x932">大手机 430×932</option></select></label>
+  <label>自定义版：撤销/重来 <input id="side" type="range" min="100" max="150" step="1" value="125"><output id="sideOut">1.25×</output></label>
+  <label>提示 <input id="mid" type="range" min="100" max="150" step="1" value="130"><output id="midOut">1.30×</output></label>
+</div>
+<main id="main"></main>
+<script>
+const $=id=>document.getElementById(id);
+// [key, title, note, side scale (undo/reset), hint scale]
+const VERS=[
+  ['now','现在','原来的大小，做对比用',1,1],
+  ['a','A · 小幅放大','三个都放大 15%，最稳妥',1.15,1.15],
+  ['b','B · 中等放大','三个都放大 25%',1.25,1.25],
+  ['c','C · 大号','三个都放大 35%，图标最醒目',1.35,1.35],
+  ['d','D · 提示更突出','撤销/重来放大 20%，中间的提示放大 35%',1.2,1.35],
+  ['e','E · 自定义','用上面两个滑杆自己调',1.25,1.3],
+];
+const css=(s,m)=>`
+html body .tools>button:not(#playButton){--ts:${s};transform:scale(var(--ts));transform-origin:50% 50%}
+html body .tools>button#hintButton{--ts:${m}}
+html body .tools>button:not(#playButton):not(:disabled):active{transform:translateY(2px) scale(calc(var(--ts) * .97))}`;
+const frames={};
+function inject(key){
+  const f=frames[key],v=VERS.find(x=>x[0]===key);
+  try{
+    const d=f.contentDocument;if(!d||!d.head)return;
+    let st=d.getElementById('toolVer');
+    if(!st){st=d.createElement('style');st.id='toolVer';d.head.appendChild(st);}
+    st.textContent=css(v[3],v[4]);
+  }catch{}
+}
+// Does the enlarged art touch the board above or leave the screen?
+function check(key){
+  const f=frames[key],tag=$('fit-'+key);
+  try{
+    const d=f.contentDocument,w=f.contentWindow;
+    const btns=[...d.querySelectorAll('.tools>button:not(#playButton)')].filter(b=>b.offsetParent);
+    if(!btns.length){tag.textContent='（按钮还没出现，等游戏开始）';tag.className='fit';return;}
+    const board=d.querySelector('.board-wrap')?.getBoundingClientRect();
+    let top=1e9,bot=-1e9,overlapX=false,rects=btns.map(b=>b.getBoundingClientRect());
+    rects.forEach(r=>{top=Math.min(top,r.top);bot=Math.max(bot,r.bottom);});
+    for(let i=1;i<rects.length;i++)if(rects[i].left<rects[i-1].right-2)overlapX=true;
+    const gapBoard=board?Math.round(top-board.bottom):99,gapBottom=Math.round(w.innerHeight-bot);
+    const bad=gapBoard<0||gapBottom<0||overlapX;
+    tag.className='fit'+(bad?' bad':'');
+    tag.textContent=bad?`会挤到：${gapBoard<0?'盖住棋盘 '+(-gapBoard)+'px ':''}${gapBottom<0?'超出屏幕底 '+(-gapBottom)+'px ':''}${overlapX?'按钮互相碰到':''}`
+      :`放得下：离棋盘 ${gapBoard}px，离屏幕底 ${gapBottom}px`;
+  }catch{tag.textContent='';}
+}
+function size(){
+  const [w,h]=$('size').value.split('x').map(Number);
+  Object.values(frames).forEach(f=>{f.style.width=w+'px';f.style.height=h+'px';});
+}
+VERS.forEach(([key,title,note])=>{
+  const fig=document.createElement('figure');
+  fig.innerHTML=`<div class="phone"><iframe title="${title}" src="/index.html?autostart=1"></iframe></div>
+  <figcaption><b>${title}</b><small>${note}</small><span class="fit" id="fit-${key}"></span><br><button class="pick" type="button">选这版</button></figcaption>`;
+  $('main').appendChild(fig);
+  const f=fig.querySelector('iframe');frames[key]=f;
+  f.addEventListener('load',()=>{inject(key);setTimeout(()=>check(key),800);});
+  fig.querySelector('.pick').onclick=()=>{
+    document.querySelectorAll('figure').forEach(x=>x.classList.toggle('picked',x===fig));
+  };
+});
+function custom(){
+  const s=+$('side').value/100,m=+$('mid').value/100,v=VERS.find(x=>x[0]==='e');
+  v[3]=s;v[4]=m;$('sideOut').textContent=s.toFixed(2)+'×';$('midOut').textContent=m.toFixed(2)+'×';
+  inject('e');check('e');
+}
+$('side').oninput=custom;$('mid').oninput=custom;
+$('size').onchange=()=>{size();setTimeout(()=>VERS.forEach(v=>check(v[0])),600);};
+size();
+setInterval(()=>VERS.forEach(v=>{inject(v[0]);check(v[0]);}),2000);
+</script>
+</body>
+</html>

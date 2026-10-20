@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>撤销 / 提示 / 重来 按钮造型 · 截图对比</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.5 system-ui,"Microsoft YaHei",sans-serif;color:#2b2540;background:#ECE8F4}
+  header{padding:18px 24px 4px}
+  h1{margin:0;font-size:20px}
+  header p{margin:4px 0 0;color:#6a6385;max-width:900px}
+  .tabs{display:flex;gap:8px;padding:10px 24px 0}
+  .tabs button{font:700 13px system-ui,"Microsoft YaHei";padding:6px 14px;border:0;border-radius:10px;background:#fff;color:#5b3fd0;cursor:pointer;box-shadow:0 1px 4px #2b25401f}
+  .tabs button.on{background:#7B5CF0;color:#fff}
+  main{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:20px;padding:16px 24px 40px}
+  figure{margin:0;padding:12px;border-radius:16px;background:#fff;box-shadow:0 2px 8px #2b25401f;outline:4px solid transparent;outline-offset:2px}
+  figure.picked{outline-color:#7B5CF0}
+  figure img{display:block;width:100%;height:auto;border-radius:10px;background:#22344F}
+  body.full figure img.zoom,body:not(.full) figure img.full{display:none}
+  body.full main{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  figcaption{margin-top:8px}
+  figcaption b{font-size:16px}
+  figcaption small{display:block;color:#6a6385;font-size:12.5px}
+  .pick{margin-top:6px;padding:5px 14px;border:0;border-radius:10px;background:#EEE8FF;color:#5b3fd0;font:700 13px system-ui,"Microsoft YaHei";cursor:pointer}
+  figure.picked .pick{background:#7B5CF0;color:#fff}
+</style>
+</head>
+<body>
+<header>
+  <h1>撤销 / 提示 / 重来 —— 按钮造型几版（游戏真实截图）</h1>
+  <p>都是在游戏第 1 关里直接截的图，屏幕 390×844。按钮只在原来那一排的位置里变，棋盘和其他界面都没有动。刚开局还没走棋，所以“撤销”是灰的（不能点），这是正常状态。默认显示按钮放大特写，点“看整屏”可以看完整画面。</p>
+</header>
+<div class="tabs"><button id="tZoom" class="on" type="button">按钮特写</button><button id="tFull" type="button">看整屏</button></div>
+<main id="main"></main>
+<script>
+const VERS=[
+  [0,'现在','原来的三个圆形按钮，做对比用'],
+  [1,'1 · 雪顶胶囊','和地图页底部按钮同一套带积雪的皮肤，提示是金色'],
+  [2,'2 · 横椭圆','奶油色椭圆加金边，提示是暖金色并带一圈光，图标和字横排'],
+  [3,'3 · 竖蛋形','有点像鸡蛋的竖椭圆，三个按钮各自一个颜色（蓝 / 金 / 紫），图标在上、字在下'],
+  [4,'4 · 原图标放大 + 椭圆字牌','保留原来的圆形图标并放大，文字放进下面的小椭圆牌'],
+  [5,'5 · 胶囊 + 圆徽章','长条椭圆，左边嵌着原来的圆形图标，右边是字'],
+  [6,'6 · 冰霜椭圆','半透明的冰蓝椭圆，提示是暖金色，跟雪景更贴'],
+];
+const main=document.getElementById('main');
+VERS.forEach(([v,t,s])=>{
+  const f=document.createElement('figure');
+  f.innerHTML=`<img class="zoom" src="shots-tools/z${v}.png" alt="${t} 特写"><img class="full" src="shots-tools/v${v}.png" alt="${t} 整屏" loading="lazy">
+  <figcaption><b>${t}</b><small>${s}</small>${v?'<button class="pick" type="button">选这版</button>':''}</figcaption>`;
+  main.appendChild(f);
+  const p=f.querySelector('.pick');
+  if(p)p.onclick=()=>document.querySelectorAll('figure').forEach(x=>x.classList.toggle('picked',x===f));
+});
+const tz=document.getElementById('tZoom'),tf=document.getElementById('tFull');
+tz.onclick=()=>{document.body.classList.remove('full');tz.classList.add('on');tf.classList.remove('on');};
+tf.onclick=()=>{document.body.classList.add('full');tf.classList.add('on');tz.classList.remove('on');};
+</script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>小屋地图改版候选 · 母女救援</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font:14px/1.5 system-ui,"Microsoft YaHei",sans-serif;color:#2b2540;background:#ECE8F4}
+  header{padding:18px 24px 4px}
+  h1{margin:0;font-size:20px}
+  header p{margin:4px 0 0;color:#6a6385}
+  .bar{display:flex;flex-wrap:wrap;gap:18px;align-items:center;padding:10px 24px;margin:8px 24px 0;border-radius:14px;background:#fff;box-shadow:0 2px 8px #2b25401f}
+  .bar label{display:flex;align-items:center;gap:8px;font-weight:700}
+  .bar input[type=range]{width:180px}
+  .bar output{min-width:44px;font-variant-numeric:tabular-nums;color:#7B5CF0}
+  main{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;padding:20px 24px 40px}
+  figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:10px;width:390px}
+  .phone{width:390px;height:780px;border-radius:36px;padding:12px;background:#1d1a26;box-shadow:0 18px 40px #2b254055;cursor:pointer;outline:4px solid transparent;outline-offset:3px}
+  figure.picked .phone{outline-color:#7B5CF0}
+  .screen{position:relative;width:100%;height:100%;border-radius:26px;overflow:hidden;background:#22344F}
+  .scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+  .scroll::-webkit-scrollbar{display:none}
+  .map{position:relative;width:100%;background-size:100% 100%;background-repeat:no-repeat}
+  .map svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .node{position:absolute;width:38px;height:38px;margin:-19px 0 0 -19px;border:0;border-radius:50%;display:grid;place-items:center;font:900 14px/1 system-ui;color:#5A3108;
+    background:url(assets/ui-step-done.webp) center/contain no-repeat;filter:drop-shadow(0 3px 3px #0008);cursor:pointer}
+  .node.locked{background-image:url(assets/ui-step-locked.webp);color:#EFE6D8;text-shadow:0 1px 0 #0007}
+  .node.current{background-image:url(assets/ui-step-current.webp);color:#6A3A08;width:54px;height:54px;margin:-27px 0 0 -27px;font-size:18px;animation:pulse 1.6s ease-in-out infinite}
+  .node.done::after{content:"✓";color:#fff;font-size:18px;text-shadow:0 1px 2px #6A3A08}
+  .node.done span{display:none}
+  .home{position:absolute;transform:translate(-50%,-50%);padding:3px 12px 5px;border-radius:12px;background:#FFF6E3ee;box-shadow:0 2px 6px #0006;font-weight:900;font-size:13px;color:#5A3108;white-space:nowrap}
+  .home small{display:block;font-size:10.5px;font-weight:700;color:#8a6a3a;text-align:center}
+  .home.locked{background:#3a3f55dd;color:#e8e2f0}.home.locked small{color:#c9c2da}
+  .home.locked::before{content:"";display:inline-block;width:12px;height:14px;margin-right:4px;vertical-align:-2px;background:url(assets/ui-icon-lock.webp) center/contain no-repeat}
+  .pair{position:absolute;width:64px;height:64px;margin:-58px 0 0 -32px;border-radius:50%;border:3px solid #FFE7A8;background:#fff center 18%/cover no-repeat;box-shadow:0 3px 8px #0009;transition:left .6s,top .6s}
+  .pair::after{content:"";position:absolute;left:50%;bottom:-10px;margin-left:-8px;border:8px solid transparent;border-top-color:#FFE7A8;border-bottom:0}
+  .hud{position:absolute;left:0;right:0;top:0;z-index:3;display:flex;align-items:center;gap:8px;padding:12px 12px 26px;background:linear-gradient(#0a1224cc,#0a122400)}
+  .hud h2{margin:0;flex:1;color:#fff;font-size:18px;text-shadow:0 2px 3px #0009}
+  .hud .count{padding:2px 12px 4px;border-radius:12px;background:#FFF6E3;color:#5A3108;font-weight:900;font-size:13px}
+  .hud .x{width:34px;height:34px;border-radius:50%;background:#FFF6E3 url(assets/ui-icon-close.webp) center/60% no-repeat;box-shadow:0 2px 4px #0006}
+  .foot{position:absolute;left:0;right:0;bottom:0;z-index:3;display:flex;gap:10px;justify-content:center;padding:28px 12px 14px;background:linear-gradient(#0a122400,#0a1224cc)}
+  .foot span{padding:8px 16px;border-radius:14px;background:#FFF6E3;color:#5A3108;font-weight:900;font-size:13px;box-shadow:0 2px 4px #0006}
+  .foot span.go{background:#7CC04A;color:#fff;text-shadow:0 1px 0 #2a5a10}
+  figcaption{text-align:center}
+  figcaption b{display:block;font-size:16px}
+  figcaption small{display:block;color:#6a6385;font-size:12.5px;max-width:370px}
+  .pick{margin-top:4px;padding:6px 16px;border:0;border-radius:10px;background:#EEE8FF;color:#5b3fd0;font:700 13px system-ui,"Microsoft YaHei";cursor:pointer}
+  figure.picked .pick{background:#7B5CF0;color:#fff}
+  .missing{position:absolute;inset:0;display:grid;place-items:center;color:#c9c2da;font-size:14px;text-align:center;padding:20px}
+  @keyframes pulse{50%{filter:drop-shadow(0 0 10px #FFD24A) brightness(1.12)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>小屋地图改版候选（雪中小路）</h1>
+  <p>每台手机都是一版地图：一条小路从下往上串起 4 间小屋，20 个关卡石沿路排开，母女头像停在当前关。手机里可以上下滚动，点关卡石可以模拟“打到这一关”。看中哪版点下面的“选这版”。</p>
+</header>
+<div class="bar">
+  <label>模拟进度：已完成 <input id="prog" type="range" min="0" max="20" step="1" value="3"><output id="progOut">3</output> 关</label>
+  <label><input id="path" type="checkbox" checked> 显示路线虚线</label>
+  <span id="picked" style="color:#7B5CF0;font-weight:700"></span>
+</div>
+<main id="main"></main>
+<script>
+const HOMES=[['雪夜的阁楼','第 1 章'],['山间石屋','第 2 章'],['湖边渔屋','第 3 章'],['两间农舍','第 4 章']];
+// Each version: map image, 20 level points along its painted path (x,y as 0..1 of the image, bottom→top),
+// and one label point per home. Filled in after looking at each generated map.
+const VERSIONS=[
+  {id:'v1',name:'A · 黎明雪路',desc:'最接近参考图：粉紫色黎明，石屋、渔屋、农舍沿一条雪路往上排。',img:'assets/map-v1.png',
+    pts:[[.47,.875],[.50,.80],[.52,.73],[.58,.67],[.63,.615],[.70,.565],[.66,.51],[.62,.465],[.66,.42],[.72,.385],[.76,.345],[.70,.305],[.64,.285],[.72,.265],[.76,.225],[.74,.195],[.68,.17],[.64,.145],[.72,.125],[.70,.105]],
+    homes:[[.27,.60],[.78,.505],[.37,.20],[.48,.12]]},
+  {id:'v2',name:'B · 月夜灯路',desc:'和游戏现在的夜景最搭：深蓝雪夜，路边挂小灯笼，窗户暖黄。',img:'assets/map-v2.png',
+    pts:[[.45,.88],[.47,.80],[.52,.73],[.58,.68],[.66,.635],[.72,.585],[.64,.545],[.60,.50],[.66,.455],[.72,.41],[.78,.37],[.80,.33],[.74,.30],[.68,.27],[.74,.235],[.78,.205],[.72,.18],[.66,.16],[.70,.14],[.64,.12]],
+    homes:[[.25,.63],[.78,.525],[.36,.21],[.48,.13]]},
+  {id:'v3',name:'C · 手绘水彩',desc:'像图画书里的手绘地图（参考 Alba）：米色纸底、水彩、更轻更亮。',img:'assets/map-v3.png',
+    pts:[[.46,.88],[.50,.81],[.53,.74],[.60,.68],[.66,.63],[.72,.58],[.70,.535],[.60,.50],[.56,.45],[.62,.41],[.70,.37],[.76,.33],[.72,.29],[.66,.255],[.72,.22],[.78,.19],[.72,.165],[.64,.15],[.58,.135],[.66,.12]],
+    homes:[[.30,.66],[.78,.525],[.36,.25],[.42,.12]]},
+  {id:'v4',name:'D · 越走越暖',desc:'从下往上由冬入春：第一间在暴风雪里，最上面是开花的农舍，“一路变暖”画在地图上。',img:'assets/map-v4.png',
+    pts:[[.50,.89],[.50,.81],[.56,.74],[.62,.69],[.66,.64],[.62,.585],[.58,.54],[.60,.49],[.66,.45],[.72,.42],[.78,.385],[.84,.345],[.86,.30],[.84,.26],[.78,.225],[.74,.195],[.76,.16],[.72,.135],[.70,.11],[.64,.10]],
+    homes:[[.34,.70],[.78,.59],[.40,.19],[.52,.10]],fx:.7},
+];
+const $=id=>document.getElementById(id);
+let done=3;
+function chapterOf(i){return Math.floor(i/5);}
+function build(v){
+  const fig=document.createElement('figure');fig.id='fig-'+v.id;
+  fig.innerHTML=`<div class="phone"><div class="screen"><div class="scroll"><div class="map"></div></div>
+    <div class="hud"><h2>小屋地图</h2><span class="count"></span><span class="x"></span></div>
+    <div class="foot"><span>我们的故事</span><span>回忆画廊</span><span class="go">继续</span></div></div></div>
+    <figcaption><b>${v.name}</b><small>${v.desc}</small><button class="pick" type="button">选这版</button></figcaption>`;
+  $('main').appendChild(fig);
+  fig.querySelector('.pick').onclick=()=>{document.querySelectorAll('figure').forEach(f=>f.classList.toggle('picked',f===fig));$('picked').textContent='已选：'+v.name+'（告诉我这个名字即可）';};
+  const im=new Image();
+  im.onload=()=>{v.w=im.naturalWidth;v.h=im.naturalHeight;draw(v);};
+  im.onerror=()=>{fig.querySelector('.screen').insertAdjacentHTML('beforeend','<div class="missing">底图还在生成，稍后刷新</div>');};
+  im.src=v.img;
+}
+function draw(v){
+  const fig=$('fig-'+v.id);if(!v.w)return;
+  const scroll=fig.querySelector('.scroll'),map=fig.querySelector('.map');
+  // Cover-fit the painting into the phone without stretching: scale by height,
+  // crop the overflowing sides evenly, and map points through the same transform.
+  // 1.2x the screen height so the map scrolls a little, like the reference.
+  const W=scroll.clientWidth,H=Math.max(scroll.clientHeight*1.2,W*v.h/v.w);
+  const s=Math.max(W/v.w,H/v.h),iw=v.w*s,ox=(iw-W)*(v.fx??.5);
+  map.style.height=H+'px';map.style.backgroundImage=`url(${v.img})`;
+  map.style.backgroundSize=`${iw}px ${v.h*s}px`;map.style.backgroundPosition=`${-ox}px 0`;
+  const P=([x,y])=>[x*iw-ox,y*v.h*s];
+  // The hand-placed points trace the painted path; re-space 20 stones evenly along it
+  // so the short top stretch does not get crowded.
+  const raw=v.pts.map(P),seg=[0];
+  for(let i=1;i<raw.length;i++)seg.push(seg[i-1]+Math.hypot(raw[i][0]-raw[i-1][0],raw[i][1]-raw[i-1][1]));
+  const L=seg[seg.length-1],even=raw.length<2?raw:Array.from({length:20},(_,k)=>{
+    const t=L*k/19;let j=1;while(j<seg.length-1&&seg[j]<t)j++;
+    const f=(t-seg[j-1])/((seg[j]-seg[j-1])||1);
+    return [raw[j-1][0]+(raw[j][0]-raw[j-1][0])*f,raw[j-1][1]+(raw[j][1]-raw[j-1][1])*f];});
+  const Q=i=>even[i];
+  let html='';
+  if($('path').checked&&v.pts.length>1){
+    const d=v.pts.map((p,i)=>(i?'L':'M')+P(p).map(n=>n.toFixed(1)).join(' ')).join(' ');
+    html+=`<svg viewBox="0 0 ${W} ${H}"><path d="${d}" fill="none" stroke="#FFF6E3" stroke-width="4" stroke-dasharray="2 9" stroke-linecap="round" opacity=".85"/></svg>`;
+  }
+  const cur=Math.min(19,done),open=Math.min(19,done);
+  v.homes.forEach((p,c)=>{const [x,y]=P(p),locked=c*5>open;html+=`<div class="home ${locked?'locked':''}" style="left:${x}px;top:${y}px">${HOMES[c][0]}<small>${HOMES[c][1]}${!locked&&[0,1,2,3,4].every(k=>c*5+k<done)?' · 已完成':''}</small></div>`;});
+  even.forEach(([x,y],i)=>{const cls=i<done?'done':i===cur&&done<20?'current':i>open?'locked':'';
+    html+=`<button class="node ${cls}" style="left:${x}px;top:${y}px" data-i="${i}" title="第 ${i+1} 关"><span>${i+1}</span></button>`;});
+  if(even.length){const [x,y]=Q(Math.min(19,done));html+=`<div class="pair" style="left:${x}px;top:${y}px;background-image:url(assets/ui-chapter-${chapterOf(Math.min(19,done))}.webp)"></div>`;}
+  map.innerHTML=html;
+  fig.querySelector('.count').textContent=`${done} / 20`;
+  map.querySelectorAll('.node').forEach(b=>b.onclick=()=>{done=+b.dataset.i;$('prog').value=done;sync();});
+  // Keep the current stone in view.
+  if(even.length){const y=Q(Math.min(19,done))[1];scroll.scrollTo({top:Math.max(0,y-scroll.clientHeight*.6),behavior:'smooth'});}
+}
+function sync(){$('progOut').textContent=done;VERSIONS.forEach(draw);}
+VERSIONS.forEach(build);
+$('prog').addEventListener('input',()=>{done=+$('prog').value;sync();});
+$('path').addEventListener('change',sync);
+addEventListener('resize',sync);
+</script>
+</body>
+</html>

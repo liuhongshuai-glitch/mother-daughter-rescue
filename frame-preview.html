@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第一章画面位置预览 · 母女救援</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font:14px/1.5 system-ui,"Microsoft YaHei",sans-serif;color:#2b2540;background:#ECE8F4}
+  header{padding:18px 24px 4px}
+  h1{margin:0;font-size:20px}
+  h2{margin:26px 24px 4px;font-size:17px}
+  header p,.note{margin:4px 0 0;color:#6a6385}
+  .note{margin:0 24px}
+  .bar{display:flex;flex-wrap:wrap;gap:18px;align-items:center;padding:10px 24px;margin:8px 24px 0;border-radius:14px;background:#fff;box-shadow:0 2px 8px #2b25401f}
+  .bar label{display:flex;align-items:center;gap:8px;font-weight:700}
+  .bar input[type=range]{width:180px}
+  .bar output{min-width:44px;font-variant-numeric:tabular-nums;color:#7B5CF0}
+  .bar button,.bar select{font:inherit;padding:4px 12px;border-radius:8px;border:1px solid #cfc8e6;background:#F6F3FF;cursor:pointer}
+  main{display:flex;flex-wrap:wrap;gap:28px;justify-content:center;padding:18px 24px 8px}
+  figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:10px}
+  figcaption{font-weight:800;font-size:15px;text-align:center}
+  figcaption small{display:block;font-weight:500;color:#6a6385;font-size:12.5px}
+  .phone{border-radius:36px;padding:12px;background:#1d1a26;box-shadow:0 18px 40px #2b254055}
+  .phone iframe{display:block;border:0;border-radius:26px;background:#22344F}
+  .phone.after{background:#3b2a6b}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;padding:12px 24px 36px}
+  .card{background:#fff;border-radius:16px;padding:10px;box-shadow:0 2px 8px #2b25401f}
+  .card .pair{display:flex;gap:8px}
+  .card .pair div{flex:1;min-width:0;text-align:center;font-size:12px;color:#6a6385}
+  .card canvas{display:block;width:100%;height:auto;border-radius:10px;background:#24354F}
+  .card b{display:block;margin:8px 2px 0;font-size:13.5px}
+  .card span{display:block;margin:0 2px;color:#6a6385;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>第一章画面位置预览（可调模糊大小）</h1>
+  <p>画面保持原来的大小，只整体往下移。上方空出来的部分始终用同一张图的模糊版填上；“模糊大小”控制模糊从画面上边缘往下盖进画面多少（0 = 不往画面里盖，边缘是清晰的直线；22% = 原来的效果）。</p>
+</header>
+<div class="bar">
+  <label>人物中心高度 <input id="fy" type="range" min="150" max="330" step="5" value="230"><output id="fyOut">230</output></label>
+  <label>模糊大小 <input id="blur" type="range" min="0" max="50" step="1" value="6"><output id="blurOut">6%</output></label>
+  <label>屏幕 <select id="size"><option value="390x780">手机 390×780</option><option value="540x900" selected>电脑窄窗 540×900</option><option value="440x900">高瘦屏 440×900</option></select></label>
+  <label><input id="guide" type="checkbox" checked> 显示中线</label>
+  <button id="reset" type="button">恢复推荐值</button>
+</div>
+<main>
+  <figure><div class="phone"><iframe id="before" src="/index.html?autostart=1" title="调整前"></iframe></div><figcaption>调整前<small>原来的位置</small></figcaption></figure>
+  <figure><div class="phone after"><iframe id="after" src="/index.html?autostart=1" title="调整后"></iframe></div><figcaption>调整后（游戏里已应用：高度 230，模糊 6%）<small>拖滑杆可继续试</small></figcaption></figure>
+</main>
+<h2>第一章全部 8 张画面</h2>
+<p class="note">每张图左边是调整前、右边是调整后，按右边游戏里实际量到的画布和任务条尺寸来画。底部的米色条是任务条的位置（被它盖住的部分在游戏里看不到），虚线是任务条以上可视区的中线。第一章的视频和对应的静态图共用同一个位置。</p>
+<div class="grid" id="grid"></div>
+<script>
+const $=id=>document.getElementById(id);
+const frames=[$('before'),$('after')];
+const SHOTS=[
+  ['act-attic-0','第 1 关 · 开场','还没修，播放暴风雪待机视频'],
+  ['act-attic-1-open','第 2 关 · 开场','母女走到第 2 项要修的地方'],
+  ['act-attic-1','修好 1 项','第 1 关修完后的画面'],
+  ['act-attic-2','修好 2 项','第 3 关进行中'],
+  ['act-attic-3-open','第 4 关 · 开场','母女走到床边'],
+  ['act-attic-3','修好 3 项','第 4 关修完后的画面'],
+  ['act-attic-4','修好 4 项','第 5 关进行中'],
+  ['act-attic-5','全部修好','第一章结尾'],
+];
+const imgs={},smalls={};
+let layout={w:470,h:330,strip:34};
+function fy(){return +$('fy').value;}
+function blur(){return +$('blur').value/100;}
+function apply(){
+  $('fyOut').textContent=$('fy').value;
+  $('blurOut').textContent=$('blur').value+'%';
+  try{$('after').contentWindow.__SCENE_FRAME__={focusY:fy(),blur:blur()};}catch{}
+  drawAll();
+}
+function size(){
+  const [w,h]=$('size').value.split('x').map(Number);
+  frames.forEach(f=>{f.style.width=w+'px';f.style.height=h+'px';});
+  setTimeout(measure,500);setTimeout(measure,1500);
+}
+// Read the real scene canvas and task strip size from the right-hand game.
+function measure(){
+  try{
+    const d=$('after').contentDocument,cv=d&&d.getElementById('scene');if(!cv)return;
+    const box=cv.getBoundingClientRect();if(!box.width||!box.height)return;
+    const th=cv.closest('.story')?.querySelector('.task-heading')?.getBoundingClientRect();
+    const strip=th&&th.height&&th.top<box.bottom&&th.bottom>box.top?Math.max(0,box.bottom-th.top+6):0;
+    const next={w:Math.round(box.width),h:Math.round(box.height),strip:Math.round(strip)};
+    if(next.w!==layout.w||next.h!==layout.h||next.strip!==layout.strip){layout=next;drawAll();}
+  }catch{}
+}
+// Same placement as scene.js renderScene (painted acts, chapter 1).
+function place(W,H,strip,focus){
+  const s=Math.min(W/900,H/600);
+  let oy=(H-600*s)/2;if(oy>0)oy=Math.max(0,H-600*s-strip);
+  if(focus!==false)oy=Math.max(oy,(H-strip)/2-focus*s);
+  return {s,ox:(W-900*s)/2,oy};
+}
+function backdrop(g,name,W,H){
+  const im=imgs[name];
+  if(!smalls[name]){const c=document.createElement('canvas');c.width=30;c.height=20;c.getContext('2d').drawImage(im,0,0,30,20);smalls[name]=c;}
+  const k=Math.max(W/900,H/600)*1.08,w=900*k,h=600*k;
+  g.save();g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(smalls[name],(W-w)/2,(H-h)/2,w,h);
+  g.fillStyle='rgba(12,20,34,.38)';g.fillRect(0,0,W,H);g.restore();
+}
+function render(cv,name,focus){
+  const {w:W,h:H,strip}=layout,dpr=2;
+  cv.width=W*dpr;cv.height=H*dpr;const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);
+  const im=imgs[name];c.fillStyle='#24354F';c.fillRect(0,0,W,H);if(!im)return;
+  const {s,ox,oy}=place(W,H,strip,focus),ph=600*s;
+  // The old framing keeps the original 22% fade; the new one follows the slider.
+  const top=focus===false?.22:blur();
+  backdrop(c,name,W,H);
+  c.drawImage(im,ox,oy,900*s,ph);
+  {
+  // Feather: blurred fill opaque outside the painting, fading in over its top and bottom edges, plus the HUD shade.
+  const f=document.createElement('canvas');f.width=W;f.height=H;const g=f.getContext('2d');
+  backdrop(g,name,W,H);
+  const m=g.createLinearGradient(0,oy,0,oy+ph);
+  if(top>0){m.addColorStop(0,'#000');m.addColorStop(top*.27,'rgba(0,0,0,.72)');m.addColorStop(top,'rgba(0,0,0,0)');}
+  else{m.addColorStop(0,'#000');m.addColorStop(.002,'rgba(0,0,0,0)');}
+  m.addColorStop(.84,'rgba(0,0,0,0)');m.addColorStop(.95,'rgba(0,0,0,.7)');m.addColorStop(1,'#000');
+  g.globalCompositeOperation='destination-in';g.fillStyle=m;g.fillRect(0,0,W,H);
+  g.globalCompositeOperation='source-over';
+  const sh=g.createLinearGradient(0,0,0,120);sh.addColorStop(0,'rgba(8,14,26,.55)');sh.addColorStop(1,'rgba(8,14,26,0)');g.fillStyle=sh;g.fillRect(0,0,W,120);
+  c.drawImage(f,0,0);
+  }
+  // HUD pills and task strip stand-ins.
+  c.fillStyle='rgba(246,236,214,.92)';
+  [[10,10,62,24],[82,10,72,24]].forEach(([x,y,w,h])=>{c.beginPath();c.roundRect(x,y,w,h,12);c.fill();});
+  [W-118,W-78,W-38].forEach(x=>{c.beginPath();c.arc(x+14,22,15,0,Math.PI*2);c.fill();});
+  if(strip){c.fillStyle='rgba(246,236,214,.96)';c.beginPath();c.roundRect(12,H-strip+6,W-24,Math.max(20,strip+8),10);c.fill();
+    c.fillStyle='#6a5a40';c.font='bold 12px system-ui,"Microsoft YaHei"';c.fillText('任务条',24,H-strip+24);}
+  if($('guide').checked){const y=(H-strip)/2;c.setLineDash([6,5]);c.strokeStyle='rgba(255,90,140,.9)';c.lineWidth=1.5;c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke();c.setLineDash([]);}
+}
+function drawAll(){
+  document.querySelectorAll('canvas[data-name]').forEach(cv=>render(cv,cv.dataset.name,cv.dataset.old?false:fy()));
+}
+const grid=$('grid');
+SHOTS.forEach(([name,title,sub])=>{
+  const card=document.createElement('div');card.className='card';
+  card.innerHTML=`<div class="pair"><div><canvas data-name="${name}" data-old="1"></canvas>调整前</div><div><canvas data-name="${name}"></canvas>调整后</div></div><b>${title}</b><span>${sub} · ${name}.webp</span>`;
+  grid.appendChild(card);
+  const im=new Image();im.onload=()=>{imgs[name]=im;drawAll();};im.src=`/assets/${name}.webp`;
+});
+// Skip the "continue?" card so both phones land straight on the board.
+function settle(f){
+  let n=0;const t=setInterval(()=>{
+    const d=f.contentDocument,b=d&&d.getElementById('resumeButton');
+    if(b){b.click();clearInterval(t);}else if(++n>40)clearInterval(t);
+  },150);
+}
+// The left phone shows the old framing (false = plain fit), the right one follows the slider.
+frames.forEach(f=>f.addEventListener('load',()=>{
+  settle(f);
+  if(f.id==='after'){apply();[600,1500,3000].forEach(ms=>setTimeout(measure,ms));}
+  else try{f.contentWindow.__SCENE_FRAME__=false;}catch{}
+}));
+$('fy').addEventListener('input',apply);
+$('blur').addEventListener('input',apply);
+$('guide').addEventListener('change',drawAll);
+$('size').addEventListener('change',size);
+$('reset').onclick=()=>{$('fy').value=230;$('blur').value=6;apply();};
+addEventListener('resize',drawAll);
+size();apply();
+</script>
+</body>
+</html>

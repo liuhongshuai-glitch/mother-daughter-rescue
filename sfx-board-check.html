@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>点击方格音效 · 母女救援</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.6 system-ui,"Microsoft YaHei",sans-serif;color:#2b2540;background:#ECE8F4}
+header{padding:18px 24px 6px;max-width:1000px}
+h1{margin:0;font-size:20px}
+h2{margin:18px 0 6px;font-size:17px}
+header p{margin:4px 0 0;color:#6a6385}
+main{max-width:1000px;padding:8px 24px 40px}
+.card{background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 2px 8px #2b25401f;margin-bottom:12px}
+.card b{font-size:16px}
+.card small{display:block;color:#6a6385;margin-top:2px}
+.bar{position:sticky;top:0;z-index:5;background:#fff;border-radius:0 0 16px 16px;box-shadow:0 2px 8px #2b25401f;padding:10px 16px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.bar label{display:flex;align-items:center;gap:8px;font-weight:700}
+button{font:700 13px system-ui,"Microsoft YaHei";border:0;border-radius:10px;padding:7px 13px;cursor:pointer;background:#FFE9B8;color:#5A3108;white-space:nowrap}
+button.alt{background:#E4EEFF;color:#2E3A5C}
+button.ghost{background:#EEE8FF;color:#5b3fd0}
+table{border-collapse:collapse;width:100%;font-size:13px}
+td,th{border-bottom:1px solid #eee;padding:7px 8px;text-align:left;vertical-align:middle}
+th{color:#6a6385;font-weight:700}
+.time{font-variant-numeric:tabular-nums;color:#7B5CF0;font-weight:700;white-space:nowrap}
+.vol{display:flex;align-items:center;gap:8px;min-width:230px}
+.vol input{width:140px}
+.vol output{font-variant-numeric:tabular-nums;min-width:40px;font-weight:700}
+.changed output{color:#c0392b}
+.steps{margin:8px 0 0;padding-left:0;list-style:none}
+.steps li{display:flex;gap:10px;padding:3px 0}
+.steps .time{min-width:64px}
+.tag{display:inline-block;padding:1px 8px;border-radius:8px;font-size:12px;font-weight:700;margin-left:6px;background:#F0EDF8;color:#4a4266}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+textarea{width:100%;height:120px;font:12px/1.5 Consolas,monospace;border:1px solid #ddd;border-radius:10px;padding:8px}
+code{background:#F6F3FC;padding:0 4px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="bar">
+<label>总音量 <input type="range" id="master" min="0" max="2" step="0.05" value="1"><output id="masterOut">100%</output></label>
+<label>修的东西 <select id="task"><option value="0">0 天窗</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+<button class="ghost" id="resetAll">全部恢复游戏原值</button>
+<button class="alt" id="stopAll">全部停止</button>
+</div>
+<header>
+<h1>点击方格音效</h1>
+<p>上半部分列出在棋盘上每种操作会依次响哪些声音，都能按游戏里的时间顺序播放。下半部分是每个声音的音量滑杆，默认是游戏里现在的值。拖完后上面的组合播放也会跟着变，调好了把最下面的数值发给我，我再同步进游戏。</p>
+</header>
+<main>
+
+<h2>一、每种操作会响什么</h2>
+<div id="actions"></div>
+
+<h2>二、每个声音的音量</h2>
+<div class="card">
+<small>红色数字表示和游戏现在的值不一样。音量是 0 到 1，游戏里大多数在 0.35 到 0.8 之间。</small>
+<table id="vols"><tr><th>声音</th><th>文件</th><th>时长</th><th>音量</th><th></th></tr></table>
+</div>
+
+<h2>三、调好的数值</h2>
+<div class="card">
+<small>只列出改过的声音。把这段文字发给我就行。</small>
+<textarea id="result" readonly>（还没有改动）</textarea>
+<div class="row"><button id="copy">复制</button></div>
+</div>
+</main>
+<script>
+// Volumes are the game's current values (audio.js SFX/VOICES table, overridden where app.js passes volume:)
+const SOUNDS={
+  'mark-tap':{name:'打 × 的“嗒”',vol:.35,len:'0.12 秒',where:'app.js 487'},
+  'unmark':{name:'去掉 × 的“嘟”（代码合成）',vol:.10,len:'0.07 秒',where:'feedback.js unmark',synth:[[350,0,.065,255]]},
+  'pop':{name:'放下物资“啵”',vol:.22,len:'0.87 秒',where:'app.js 454'},
+  'whoosh':{name:'物资飞向场景“嗖”',vol:.15,len:'0.97 秒',where:'app.js 465'},
+  'sparkle':{name:'物资落到场景“叮铃”',vol:.45,len:'1.30 秒',where:'app.js 466'},
+  'repair':{name:'修理声（按修的东西不同）',vol:.6,len:'0.5–0.8 秒',where:'audio.js repair-0…4'},
+  'voice-nice':{name:'夸奖语音（不错/很好/哇/完美/太棒了）',vol:.8,len:'0.5–1.6 秒',where:'app.js 144',voice:true},
+  'combo':{name:'连击 ×2 的音效',vol:.39,len:'1.10 秒',where:'app.js 412'},
+  'combo-3':{name:'连击 ×3 / ×4 / ×5 的音效',vol:.44,len:'0.5–0.9 秒',where:'audio.js combo-3/4/5'},
+  'remove':{name:'收回物资“嗖”（低一点）',vol:.35,len:'0.97 秒',where:'app.js 442',file:'whoosh',rate:.8},
+  'wrong':{name:'放错位置“咚”',vol:.5,len:'1.39 秒',where:'app.js 449'},
+  'voice-notthere':{name:'妈妈说“不是那里”',vol:.62,len:'1.40 秒',where:'app.js 153',voice:true},
+};
+const DEF=Object.fromEntries(Object.entries(SOUNDS).map(([k,s])=>[k,s.vol]));
+const vol={...DEF};
+const PRAISE=['voice-nice','voice-great','voice-wow','voice-perfect','voice-amazing'];
+
+// Each action: [label, note, steps [ms, soundKey, text, opts]]
+const ACTIONS=[
+  ['单击空格：打 ×','点一下就出 ×，只有一声。拖动连续打 × 时，每经过一格响一次。',[[0,'mark-tap','打 × 的“嗒”（每次音调略有不同）',{rate:'rand'}]]],
+  ['再单击：去掉 ×','这一声是代码合成的电子音，不是音频文件。',[[0,'unmark','去掉 × 的“嘟”']]],
+  ['拖动连续打 ×（模拟 4 格）','',[[0,'mark-tap','第 1 格',{rate:'rand'}],[120,'mark-tap','第 2 格',{rate:'rand'}],[240,'mark-tap','第 3 格',{rate:'rand'}],[360,'mark-tap','第 4 格',{rate:'rand'}]]],
+  ['双击空格：放下物资（第一次放对）','双击的第一下会先打 ×，所以开头会有一声“嗒”，第二下才放下物资。',[
+    [0,'mark-tap','第一下：打 × 的“嗒”',{rate:'rand'}],[250,'pop','第二下：放下物资“啵”'],[310,'whoosh','物资飞向场景“嗖”'],
+    [870,'repair','修理声'],[890,'sparkle','物资落到场景“叮铃”'],[1030,'voice-nice','夸奖语音（不错 / 很好）',{praise:'low'}]]],
+  ['连击 ×2（9 秒内又放下一个）','比第一次多一个连击音效，夸奖语音提前一点。',[
+    [0,'mark-tap','第一下：打 ×',{rate:'rand'}],[250,'pop','放下物资“啵”'],[250,'combo','连击 ×2 音效'],[310,'whoosh','“嗖”'],
+    [870,'repair','修理声'],[890,'sparkle','“叮铃”'],[950,'voice-nice','夸奖语音（哇）',{praise:2}]]],
+  ['连击 ×3 及以上','连击 ×2 那个音效换成更响的阶梯音效（×3、×4、×5 越来越高）。',[
+    [0,'mark-tap','第一下：打 ×',{rate:'rand'}],[250,'pop','放下物资“啵”'],[250,'combo-3','连击 ×3 音效'],[310,'whoosh','“嗖”'],
+    [870,'repair','修理声'],[890,'sparkle','“叮铃”'],[950,'voice-nice','夸奖语音（完美）',{praise:3}]]],
+  ['双击已放好的物资：收回','第一下没有声音（放了物资的格子不能打 ×）。',[[250,'remove','收回物资“嗖”（低一点）']]],
+  ['双击放在冲突的位置','同一行、列或色区已经有物资时。“不是那里”5 秒内只说一次。',[
+    [0,'mark-tap','第一下：打 ×',{rate:'rand'}],[250,'wrong','放错位置“咚”'],[370,'voice-notthere','妈妈说“不是那里”']]],
+  ['点题目给好的固定格','没有声音，只显示一行提示文字。',[]],
+];
+
+let ctx,timers=[],live=[];
+function master(){return +document.getElementById('master').value;}
+function ac(){if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)();ctx.resume();return ctx;}
+function sound(key,opts={}){
+  const s=SOUNDS[key];const g=Math.min(1,vol[key]*master());
+  if(s.synth){
+    // Same chain as feedback.js: 0.32 master gain and an 1800 Hz lowpass.
+    const c=ac(),out=c.createGain(),f=c.createBiquadFilter();out.gain.value=.32;f.type='lowpass';f.frequency.value=1800;f.Q.value=.5;out.connect(f);f.connect(c.destination);
+    const now=c.currentTime;
+    for(const [fr,d,dur,end] of s.synth){const o=c.createOscillator(),gn=c.createGain(),st=now+d;o.type='sine';o.frequency.setValueAtTime(fr,st);o.frequency.exponentialRampToValueAtTime(end,st+dur);
+      gn.gain.setValueAtTime(0,now);gn.gain.linearRampToValueAtTime(vol[key]*master(),st+.009);gn.gain.exponentialRampToValueAtTime(.0001,st+dur);gn.gain.linearRampToValueAtTime(0,st+dur+.008);
+      o.connect(gn);gn.connect(out);o.start(st);o.stop(st+dur+.012);}
+    return;
+  }
+  let file=s.file||key;
+  if(key==='repair')file='repair-'+document.getElementById('task').value;
+  if(key==='voice-nice'&&opts.praise!==undefined){const i=opts.praise==='low'?(Math.random()<.5?0:1):opts.praise;file=PRAISE[i]+(Math.random()<.5?'':'-2');}
+  const a=new Audio(`assets/${file}.ogg`);a.volume=g;
+  a.playbackRate=opts.rate==='rand'?.95+Math.random()*.1:(s.rate||1);
+  a.play().catch(()=>{});live.push(a);
+}
+function stopAll(){timers.forEach(clearTimeout);timers=[];live.forEach(a=>{a.pause();});live=[];}
+function playSteps(steps){stopAll();for(const [ms,key,,opts] of steps)timers.push(setTimeout(()=>sound(key,opts||{}),ms));}
+
+// Action cards
+const box=document.getElementById('actions');
+ACTIONS.forEach(([label,note,steps])=>{
+  const c=document.createElement('div');c.className='card';
+  c.innerHTML=`<b>${label}</b><span class="tag">${steps.length?steps.length+' 声':'无声'}</span>${note?`<small>${note}</small>`:''}`+
+    (steps.length?`<ul class="steps">${steps.map(([ms,key,text])=>`<li><span class="time">${(ms/1000).toFixed(2)} 秒</span><span>${text}</span></li>`).join('')}</ul><div class="row"><button>▶ 按游戏顺序播放</button></div>`:'');
+  if(steps.length)c.querySelector('button').onclick=()=>playSteps(steps);
+  box.appendChild(c);
+});
+
+// Volume table
+const tbl=document.getElementById('vols');
+Object.entries(SOUNDS).forEach(([key,s])=>{
+  const tr=document.createElement('tr');const max=s.synth?.3:1;
+  tr.innerHTML=`<td>${s.name}</td><td><code>${s.synth?'合成音':(s.file||key)}</code></td><td>${s.len}</td>
+  <td><div class="vol"><input type="range" min="0" max="${max}" step="0.01" value="${s.vol}"><output>${s.vol.toFixed(2)}</output></div></td><td><button class="alt">▶ 试听</button></td>`;
+  const r=tr.querySelector('input'),o=tr.querySelector('output'),v=tr.querySelector('.vol');
+  r.oninput=()=>{vol[key]=+r.value;o.textContent=(+r.value).toFixed(2);v.classList.toggle('changed',Math.abs(vol[key]-DEF[key])>.001);update();};
+  r.onchange=()=>sound(key,{praise:'low'});
+  tr.querySelector('button').onclick=()=>sound(key,{praise:'low',rate:key==='mark-tap'?'rand':undefined});
+  s.row={r,o,v};tbl.appendChild(tr);
+});
+const mOut=document.getElementById('masterOut');
+document.getElementById('master').oninput=e=>{mOut.textContent=Math.round(e.target.value*100)+'%';update();};
+function update(){
+  const m=master(),lines=[];
+  if(Math.abs(m-1)>.001)lines.push(`总音量 ${Math.round(m*100)}%（以下数值已乘上总音量）`);
+  for(const [k,s] of Object.entries(SOUNDS)){const nv=Math.min(1,vol[k]*m);if(Math.abs(nv-DEF[k])>.001)lines.push(`${s.name}：${DEF[k].toFixed(2)} → ${nv.toFixed(2)}`);}
+  document.getElementById('result').value=lines.length?lines.join('\n'):'（还没有改动）';
+}
+document.getElementById('resetAll').onclick=()=>{for(const [k,s] of Object.entries(SOUNDS)){vol[k]=DEF[k];s.row.r.value=DEF[k];s.row.o.textContent=DEF[k].toFixed(2);s.row.v.classList.remove('changed');}document.getElementById('master').value=1;mOut.textContent='100%';update();};
+document.getElementById('stopAll').onclick=stopAll;
+document.getElementById('copy').onclick=()=>{const t=document.getElementById('result');t.select();navigator.clipboard?.writeText(t.value);};
+</script>
+</body>
+</html>
